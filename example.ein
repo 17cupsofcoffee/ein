@@ -1,0 +1,7 @@
+fn sayHello(name) {
+    "Hello, " + name + "!"
+}
+
+let greeting = sayHello("Ein")
+
+print greeting

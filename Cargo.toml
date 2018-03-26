@@ -1,0 +1,9 @@
+[package]
+name = "ein"
+version = "0.1.0"
+authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
+
+[dependencies]
+structopt = "0.2.5"
+rustyline = "1.0.0"
+itertools = "0.7.8"
