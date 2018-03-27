@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token<'input> {
     // Sigils
     OpenDelim(DelimToken),
@@ -41,7 +41,7 @@ pub enum Token<'input> {
     While,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum DelimToken {
     Paren,
     Bracket,

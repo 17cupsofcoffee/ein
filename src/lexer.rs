@@ -196,3 +196,118 @@ impl<'input> Iterator for Lexer<'input> {
         None
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn lex(source: &str, expected: Vec<Token>) {
+        let mut lexer = Lexer::new(source);
+
+        let mut actual_len = 0;
+        let expected_len = expected.len();
+
+        for (expected, actual) in expected.into_iter().zip(lexer.by_ref()) {
+            actual_len += 1;
+            let actual = actual.unwrap();
+            assert_eq!(expected, actual);
+        }
+
+        assert_eq!(expected_len, actual_len);
+        assert_eq!(None, lexer.next());
+    }
+
+    #[test]
+    fn delimiters() {
+        lex(
+            "{} [] ()",
+            vec![
+                Token::OpenDelim(DelimToken::Brace),
+                Token::CloseDelim(DelimToken::Brace),
+                Token::OpenDelim(DelimToken::Bracket),
+                Token::CloseDelim(DelimToken::Bracket),
+                Token::OpenDelim(DelimToken::Paren),
+                Token::CloseDelim(DelimToken::Paren),
+            ],
+        );
+    }
+
+    #[test]
+    fn operators() {
+        lex(
+            ", . + - * / = == ! != > >= < <=",
+            vec![
+                Token::Comma,
+                Token::Dot,
+                Token::Plus,
+                Token::Minus,
+                Token::Star,
+                Token::Slash,
+                Token::Equal,
+                Token::EqualEqual,
+                Token::Not,
+                Token::NotEqual,
+                Token::Greater,
+                Token::GreaterEqual,
+                Token::Less,
+                Token::LessEqual,
+            ],
+        );
+    }
+
+    #[test]
+    fn line_comment() {
+        lex(
+            "123 // comment\n 123",
+            vec![Token::Number(123.0), Token::NewLine, Token::Number(123.0)],
+        );
+    }
+
+    #[test]
+    fn string() {
+        lex("\"hello, world\"", vec![Token::String("hello, world")]);
+    }
+
+    #[test]
+    fn integer() {
+        lex("123", vec![Token::Number(123.0)]);
+    }
+
+    #[test]
+    fn decimal() {
+        lex("123.45", vec![Token::Number(123.45)]);
+    }
+
+    #[test]
+    fn number_field_access() {
+        lex(
+            "123.prop",
+            vec![Token::Number(123.0), Token::Dot, Token::Identifier("prop")],
+        );
+    }
+
+    #[test]
+    fn identifiers() {
+        lex("id", vec![Token::Identifier("id")]);
+        lex("_id", vec![Token::Identifier("_id")]);
+        lex("id123", vec![Token::Identifier("id123")]);
+    }
+
+    #[test]
+    fn keywords() {
+        lex("and", vec![Token::And]);
+        lex("else", vec![Token::Else]);
+        lex("false", vec![Token::False]);
+        lex("fn", vec![Token::Fn]);
+        lex("for", vec![Token::For]);
+        lex("if", vec![Token::If]);
+        lex("nil", vec![Token::Nil]);
+        lex("or", vec![Token::Or]);
+        lex("print", vec![Token::Print]);
+        lex("return", vec![Token::Return]);
+        lex("this", vec![Token::This]);
+        lex("true", vec![Token::True]);
+        lex("let", vec![Token::Let]);
+        lex("while", vec![Token::While]);
+    }
+}
