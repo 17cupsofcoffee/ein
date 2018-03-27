@@ -26,16 +26,6 @@ impl<'input> Lexer<'input> {
         }
     }
 
-    fn skip_whitespace(&mut self) {
-        while let Some(&(_, ch)) = self.chars.peek() {
-            if ch.is_whitespace() {
-                self.chars.next();
-            } else {
-                break;
-            }
-        }
-    }
-
     fn skip_to_line_end(&mut self) {
         while let Some(&(_, ch)) = self.chars.peek() {
             if ch != '\n' {
@@ -193,14 +183,10 @@ impl<'input> Iterator for Lexer<'input> {
                 }
 
                 '"' => Some(self.read_string(i)),
+                '\n' => Some(Ok(Token::NewLine)),
+
                 ch if is_id_start(ch) => Some(self.read_identifier(i)),
                 ch if ch.is_ascii_digit() => Some(self.read_number(i)),
-
-                '\n' => {
-                    self.skip_whitespace();
-                    Some(Ok(Token::NewLine))
-                }
-
                 ch if ch.is_whitespace() => continue,
 
                 ch => Some(Err(format!("Unexpected token: {}", ch))),
