@@ -1,8 +1,12 @@
 #[derive(Debug, PartialEq)]
 pub enum Token<'input> {
     // Sigils
-    OpenDelim(DelimToken),
-    CloseDelim(DelimToken),
+    OpenBrace,
+    CloseBrace,
+    OpenBracket,
+    CloseBracket,
+    OpenParen,
+    CloseParen,
     Comma,
     Dot,
     Plus,
@@ -39,11 +43,4 @@ pub enum Token<'input> {
     True,
     Let,
     While,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum DelimToken {
-    Paren,
-    Bracket,
-    Brace,
 }

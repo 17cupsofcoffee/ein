@@ -1,5 +1,5 @@
 use std::str::CharIndices;
-use tokens::{DelimToken, Token};
+use tokens::Token;
 use itertools;
 use itertools::MultiPeek;
 
@@ -12,6 +12,8 @@ fn is_id_start(ch: char) -> bool {
 fn is_id_continue(ch: char) -> bool {
     ch == '_' || ch.is_ascii_digit()
 }
+
+pub type SpanResult<'input> = Result<(usize, Token<'input>, usize), String>;
 
 pub struct Lexer<'input> {
     source: &'input str,
@@ -36,12 +38,12 @@ impl<'input> Lexer<'input> {
         }
     }
 
-    fn read_string(&mut self, position: usize) -> Result<Token<'input>, String> {
-        let mut end = position;
+    fn read_string(&mut self, pos: usize) -> SpanResult<'input> {
+        let mut end = pos;
 
         while let Some((i, ch)) = self.chars.next() {
             if ch == '"' {
-                return Ok(Token::String(&self.source[position + 1..end + 1]));
+                return Ok((pos, Token::String(&self.source[pos + 1..end + 1]), end + 1));
             } else {
                 end = i;
             }
@@ -50,8 +52,8 @@ impl<'input> Lexer<'input> {
         Err(format!("Unterminated string"))
     }
 
-    fn read_number(&mut self, position: usize) -> Result<Token<'input>, String> {
-        let mut end = position;
+    fn read_number(&mut self, pos: usize) -> SpanResult<'input> {
+        let mut end = pos;
         let mut consumed_dot = false;
 
         while let Some(&(i, ch)) = self.chars.peek() {
@@ -80,15 +82,19 @@ impl<'input> Lexer<'input> {
             }
         }
 
-        Ok(Token::Number(
-            self.source[position..end + 1]
-                .parse()
-                .expect("unparsable number"),
+        Ok((
+            pos,
+            Token::Number(
+                self.source[pos..end + 1]
+                    .parse()
+                    .expect("unparsable number"),
+            ),
+            end,
         ))
     }
 
-    fn read_identifier(&mut self, position: usize) -> Result<Token<'input>, String> {
-        let mut end = position;
+    fn read_identifier(&mut self, pos: usize) -> SpanResult<'input> {
+        let mut end = pos;
 
         while let Some(&(i, ch)) = self.chars.peek() {
             if is_id_start(ch) || is_id_continue(ch) {
@@ -99,91 +105,91 @@ impl<'input> Lexer<'input> {
             }
         }
 
-        match &self.source[position..end + 1] {
-            "and" => Ok(Token::And),
-            "else" => Ok(Token::Else),
-            "false" => Ok(Token::False),
-            "fn" => Ok(Token::Fn),
-            "for" => Ok(Token::For),
-            "if" => Ok(Token::If),
-            "nil" => Ok(Token::Nil),
-            "or" => Ok(Token::Or),
-            "print" => Ok(Token::Print),
-            "return" => Ok(Token::Return),
-            "this" => Ok(Token::This),
-            "true" => Ok(Token::True),
-            "let" => Ok(Token::Let),
-            "while" => Ok(Token::While),
-            id => Ok(Token::Identifier(id)),
+        match &self.source[pos..end + 1] {
+            "and" => Ok((pos, Token::And, end)),
+            "else" => Ok((pos, Token::Else, end)),
+            "false" => Ok((pos, Token::False, end)),
+            "fn" => Ok((pos, Token::Fn, end)),
+            "for" => Ok((pos, Token::For, end)),
+            "if" => Ok((pos, Token::If, end)),
+            "nil" => Ok((pos, Token::Nil, end)),
+            "or" => Ok((pos, Token::Or, end)),
+            "print" => Ok((pos, Token::Print, end)),
+            "return" => Ok((pos, Token::Return, end)),
+            "this" => Ok((pos, Token::This, end)),
+            "true" => Ok((pos, Token::True, end)),
+            "let" => Ok((pos, Token::Let, end)),
+            "while" => Ok((pos, Token::While, end)),
+            id => Ok((pos, Token::Identifier(id), end)),
         }
     }
 }
 
 impl<'input> Iterator for Lexer<'input> {
-    type Item = Result<Token<'input>, String>;
+    type Item = SpanResult<'input>;
 
-    fn next(&mut self) -> Option<Result<Token<'input>, String>> {
+    fn next(&mut self) -> Option<SpanResult<'input>> {
         while let Some((i, ch)) = self.chars.next() {
             return match ch {
-                '{' => Some(Ok(Token::OpenDelim(DelimToken::Brace))),
-                '}' => Some(Ok(Token::CloseDelim(DelimToken::Brace))),
-                '(' => Some(Ok(Token::OpenDelim(DelimToken::Paren))),
-                ')' => Some(Ok(Token::CloseDelim(DelimToken::Paren))),
-                '[' => Some(Ok(Token::OpenDelim(DelimToken::Bracket))),
-                ']' => Some(Ok(Token::CloseDelim(DelimToken::Bracket))),
-                ',' => Some(Ok(Token::Comma)),
-                '.' => Some(Ok(Token::Dot)),
-                '+' => Some(Ok(Token::Plus)),
-                '-' => Some(Ok(Token::Minus)),
-                '*' => Some(Ok(Token::Star)),
+                '{' => Some(Ok((i, Token::OpenBrace, i + 1))),
+                '}' => Some(Ok((i, Token::CloseBrace, i + 1))),
+                '(' => Some(Ok((i, Token::OpenParen, i + 1))),
+                ')' => Some(Ok((i, Token::CloseParen, i + 1))),
+                '[' => Some(Ok((i, Token::OpenBracket, i + 1))),
+                ']' => Some(Ok((i, Token::CloseBracket, i + 1))),
+                ',' => Some(Ok((i, Token::Comma, i + 1))),
+                '.' => Some(Ok((i, Token::Dot, i + 1))),
+                '+' => Some(Ok((i, Token::Plus, i + 1))),
+                '-' => Some(Ok((i, Token::Minus, i + 1))),
+                '*' => Some(Ok((i, Token::Star, i + 1))),
 
                 '/' => {
                     if let Some(&(_, '/')) = self.chars.peek() {
                         self.skip_to_line_end();
                         continue;
                     } else {
-                        Some(Ok(Token::Slash))
+                        Some(Ok((i, Token::Slash, i + 1)))
                     }
                 }
 
                 '!' => {
                     if let Some(&(_, '=')) = self.chars.peek() {
                         self.chars.next();
-                        Some(Ok(Token::NotEqual))
+                        Some(Ok((i, Token::NotEqual, i + 2)))
                     } else {
-                        Some(Ok(Token::Not))
+                        Some(Ok((i, Token::Not, i + 1)))
                     }
                 }
 
                 '=' => {
                     if let Some(&(_, '=')) = self.chars.peek() {
                         self.chars.next();
-                        Some(Ok(Token::EqualEqual))
+                        Some(Ok((i, Token::EqualEqual, i + 2)))
                     } else {
-                        Some(Ok(Token::Equal))
+                        Some(Ok((i, Token::Equal, i + 1)))
                     }
                 }
 
                 '>' => {
                     if let Some(&(_, '=')) = self.chars.peek() {
                         self.chars.next();
-                        Some(Ok(Token::GreaterEqual))
+                        Some(Ok((i, Token::GreaterEqual, i + 2)))
                     } else {
-                        Some(Ok(Token::Greater))
+                        Some(Ok((i, Token::Greater, i + 1)))
                     }
                 }
 
                 '<' => {
                     if let Some(&(_, '=')) = self.chars.peek() {
                         self.chars.next();
-                        Some(Ok(Token::LessEqual))
+                        Some(Ok((i, Token::LessEqual, i + 2)))
                     } else {
-                        Some(Ok(Token::Less))
+                        Some(Ok((i, Token::Less, i + 1)))
                     }
                 }
 
                 '"' => Some(self.read_string(i)),
-                '\n' => Some(Ok(Token::NewLine)),
+                '\n' => Some(Ok((i, Token::NewLine, i + 1))),
 
                 ch if is_id_start(ch) => Some(self.read_identifier(i)),
                 ch if ch.is_ascii_digit() => Some(self.read_number(i)),
