@@ -207,7 +207,7 @@ impl<'input> Iterator for Lexer<'input> {
 mod test {
     use super::*;
 
-    fn lex(source: &str, expected: Vec<Token>) {
+    fn lex(source: &str, expected: Vec<(usize, Token, usize)>) {
         let mut lexer = Lexer::new(source);
 
         let mut actual_len = 0;
@@ -228,12 +228,12 @@ mod test {
         lex(
             "{} [] ()",
             vec![
-                Token::OpenDelim(DelimToken::Brace),
-                Token::CloseDelim(DelimToken::Brace),
-                Token::OpenDelim(DelimToken::Bracket),
-                Token::CloseDelim(DelimToken::Bracket),
-                Token::OpenDelim(DelimToken::Paren),
-                Token::CloseDelim(DelimToken::Paren),
+                (0, Token::OpenBrace, 1),
+                (1, Token::CloseBrace, 2),
+                (3, Token::OpenBracket, 4),
+                (4, Token::CloseBracket, 5),
+                (6, Token::OpenParen, 7),
+                (7, Token::CloseParen, 8),
             ],
         );
     }
@@ -243,20 +243,20 @@ mod test {
         lex(
             ", . + - * / = == ! != > >= < <=",
             vec![
-                Token::Comma,
-                Token::Dot,
-                Token::Plus,
-                Token::Minus,
-                Token::Star,
-                Token::Slash,
-                Token::Equal,
-                Token::EqualEqual,
-                Token::Not,
-                Token::NotEqual,
-                Token::Greater,
-                Token::GreaterEqual,
-                Token::Less,
-                Token::LessEqual,
+                (0, Token::Comma, 1),
+                (2, Token::Dot, 3),
+                (4, Token::Plus, 5),
+                (6, Token::Minus, 7),
+                (8, Token::Star, 9),
+                (10, Token::Slash, 11),
+                (12, Token::Equal, 13),
+                (14, Token::EqualEqual, 16),
+                (17, Token::Not, 18),
+                (19, Token::NotEqual, 21),
+                (22, Token::Greater, 23),
+                (24, Token::GreaterEqual, 26),
+                (27, Token::Less, 28),
+                (29, Token::LessEqual, 31),
             ],
         );
     }
@@ -265,55 +265,66 @@ mod test {
     fn line_comment() {
         lex(
             "123 // comment\n 123",
-            vec![Token::Number(123.0), Token::NewLine, Token::Number(123.0)],
+            vec![
+                (0, Token::Number(123.0), 2),
+                (14, Token::NewLine, 15),
+                (16, Token::Number(123.0), 18),
+            ],
         );
     }
 
     #[test]
     fn string() {
-        lex("\"hello, world\"", vec![Token::String("hello, world")]);
+        lex(
+            "\"hello, world\"",
+            vec![(0, Token::String("hello, world"), 13)],
+        );
     }
 
     #[test]
     fn integer() {
-        lex("123", vec![Token::Number(123.0)]);
+        lex("123", vec![(0, Token::Number(123.0), 2)]);
     }
 
     #[test]
     fn decimal() {
-        lex("123.45", vec![Token::Number(123.45)]);
+        lex("123.45", vec![(0, Token::Number(123.45), 5)]);
     }
 
     #[test]
     fn number_field_access() {
         lex(
             "123.prop",
-            vec![Token::Number(123.0), Token::Dot, Token::Identifier("prop")],
+            vec![
+                (0, Token::Number(123.0), 2),
+                (3, Token::Dot, 4),
+                (4, Token::Identifier("prop"), 7),
+            ],
         );
     }
 
     #[test]
     fn identifiers() {
-        lex("id", vec![Token::Identifier("id")]);
-        lex("_id", vec![Token::Identifier("_id")]);
-        lex("id123", vec![Token::Identifier("id123")]);
+        lex("id", vec![(0, Token::Identifier("id"), 1)]);
+        lex("_id", vec![(0, Token::Identifier("_id"), 2)]);
+        lex("id123", vec![(0, Token::Identifier("id123"), 4)]);
     }
 
     #[test]
     fn keywords() {
-        lex("and", vec![Token::And]);
-        lex("else", vec![Token::Else]);
-        lex("false", vec![Token::False]);
-        lex("fn", vec![Token::Fn]);
-        lex("for", vec![Token::For]);
-        lex("if", vec![Token::If]);
-        lex("nil", vec![Token::Nil]);
-        lex("or", vec![Token::Or]);
-        lex("print", vec![Token::Print]);
-        lex("return", vec![Token::Return]);
-        lex("this", vec![Token::This]);
-        lex("true", vec![Token::True]);
-        lex("let", vec![Token::Let]);
-        lex("while", vec![Token::While]);
+        lex("and", vec![(0, Token::And, 2)]);
+        lex("else", vec![(0, Token::Else, 3)]);
+        lex("false", vec![(0, Token::False, 4)]);
+        lex("fn", vec![(0, Token::Fn, 1)]);
+        lex("for", vec![(0, Token::For, 2)]);
+        lex("if", vec![(0, Token::If, 1)]);
+        lex("nil", vec![(0, Token::Nil, 2)]);
+        lex("or", vec![(0, Token::Or, 1)]);
+        lex("print", vec![(0, Token::Print, 4)]);
+        lex("return", vec![(0, Token::Return, 5)]);
+        lex("this", vec![(0, Token::This, 3)]);
+        lex("true", vec![(0, Token::True, 3)]);
+        lex("let", vec![(0, Token::Let, 2)]);
+        lex("while", vec![(0, Token::While, 4)]);
     }
 }
