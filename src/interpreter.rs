@@ -106,7 +106,7 @@ impl Evaluate for Expr {
                     },
 
                     Operator::LessEquals => match (left_val, right_val) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l >= r)),
+                        (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l <= r)),
                         (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
                     },
 
