@@ -1,5 +1,6 @@
 #[derive(Debug, PartialEq)]
 pub enum Operator {
+    // Binary
     Equals,
     NotEquals,
     GreaterThan,
@@ -10,8 +11,9 @@ pub enum Operator {
     Subtract,
     Multiply,
     Divide,
+
+    // Unary
     Not,
-    UnaryPlus,
     UnaryMinus,
 }
 

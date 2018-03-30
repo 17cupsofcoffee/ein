@@ -87,7 +87,6 @@ ExprP4: Expr = {
 ExprP5: Expr = {
     "!" <ExprP6> => Expr::UnaryOp(Operator::Not, Box::new(<>)),
     "-" <ExprP6> => Expr::UnaryOp(Operator::UnaryMinus, Box::new(<>)),
-    "+" <ExprP6> => Expr::UnaryOp(Operator::UnaryPlus, Box::new(<>)),
     ExprP6,
 };
 
