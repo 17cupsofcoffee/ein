@@ -4,42 +4,42 @@ use tokens::Token;
 grammar<'input>;
 
 pub Expr: Expr = {
-    ExprP1
+    ExprEq
 };
 
-ExprP1: Expr = {
-    <l: ExprP1> "!=" <r: ExprP2> => Expr::BinaryOp(Operator::NotEquals, Box::new(l), Box::new(r)),
-    <l: ExprP1> "==" <r: ExprP2> => Expr::BinaryOp(Operator::Equals, Box::new(l), Box::new(r)),
-    ExprP2,
+ExprEq: Expr = {
+    <l: ExprEq> "!=" <r: ExprComp> => Expr::BinaryOp(Operator::NotEquals, Box::new(l), Box::new(r)),
+    <l: ExprEq> "==" <r: ExprComp> => Expr::BinaryOp(Operator::Equals, Box::new(l), Box::new(r)),
+    ExprComp,
 };
 
-ExprP2: Expr = {
-    <l: ExprP2> ">"  <r: ExprP3> => Expr::BinaryOp(Operator::GreaterThan, Box::new(l), Box::new(r)),
-    <l: ExprP2> ">=" <r: ExprP3> => Expr::BinaryOp(Operator::GreaterEquals, Box::new(l), Box::new(r)),
-    <l: ExprP2> "<"  <r: ExprP3> => Expr::BinaryOp(Operator::LessThan, Box::new(l), Box::new(r)),
-    <l: ExprP2> "<=" <r: ExprP3> => Expr::BinaryOp(Operator::LessEquals, Box::new(l), Box::new(r)),
-    ExprP3,
+ExprComp: Expr = {
+    <l: ExprComp> ">"  <r: ExprAddSub> => Expr::BinaryOp(Operator::GreaterThan, Box::new(l), Box::new(r)),
+    <l: ExprComp> ">=" <r: ExprAddSub> => Expr::BinaryOp(Operator::GreaterEquals, Box::new(l), Box::new(r)),
+    <l: ExprComp> "<"  <r: ExprAddSub> => Expr::BinaryOp(Operator::LessThan, Box::new(l), Box::new(r)),
+    <l: ExprComp> "<=" <r: ExprAddSub> => Expr::BinaryOp(Operator::LessEquals, Box::new(l), Box::new(r)),
+    ExprAddSub,
 };
 
-ExprP3: Expr = {
-    <l: ExprP3> "+" <r: ExprP4> => Expr::BinaryOp(Operator::Add, Box::new(l), Box::new(r)),
-    <l: ExprP3> "-" <r: ExprP4> => Expr::BinaryOp(Operator::Subtract, Box::new(l), Box::new(r)),
-    ExprP4,
+ExprAddSub: Expr = {
+    <l: ExprAddSub> "+" <r: ExprMulDiv> => Expr::BinaryOp(Operator::Add, Box::new(l), Box::new(r)),
+    <l: ExprAddSub> "-" <r: ExprMulDiv> => Expr::BinaryOp(Operator::Subtract, Box::new(l), Box::new(r)),
+    ExprMulDiv,
 };
 
-ExprP4: Expr = {
-    <l: ExprP4> "*" <r: ExprP5> => Expr::BinaryOp(Operator::Multiply, Box::new(l), Box::new(r)),
-    <l: ExprP4> "/" <r: ExprP5> => Expr::BinaryOp(Operator::Divide, Box::new(l), Box::new(r)),
-    ExprP5,
+ExprMulDiv: Expr = {
+    <l: ExprMulDiv> "*" <r: ExprUnary> => Expr::BinaryOp(Operator::Multiply, Box::new(l), Box::new(r)),
+    <l: ExprMulDiv> "/" <r: ExprUnary> => Expr::BinaryOp(Operator::Divide, Box::new(l), Box::new(r)),
+    ExprUnary,
 };
 
-ExprP5: Expr = {
-    "!" <ExprP6> => Expr::UnaryOp(Operator::Not, Box::new(<>)),
-    "-" <ExprP6> => Expr::UnaryOp(Operator::UnaryMinus, Box::new(<>)),
-    ExprP6,
+ExprUnary: Expr = {
+    "!" <ExprAtom> => Expr::UnaryOp(Operator::Not, Box::new(<>)),
+    "-" <ExprAtom> => Expr::UnaryOp(Operator::UnaryMinus, Box::new(<>)),
+    ExprAtom,
 };
 
-ExprP6: Expr = {
+ExprAtom: Expr = {
     Literal,
     "(" <Expr> ")" => <>,
 };
