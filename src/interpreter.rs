@@ -1,3 +1,4 @@
+use std::fmt;
 use ast::{Expr, Operator};
 
 #[derive(Debug, PartialEq)]
@@ -14,6 +15,17 @@ impl Value {
         match *self {
             Value::Nil | Value::Boolean(false) => false,
             _ => true,
+        }
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Value::Nil => write!(f, "nil"),
+            Value::Boolean(val) => write!(f, "{}", val),
+            Value::Number(val) => write!(f, "{}", val),
+            Value::String(ref val) => write!(f, "{}", val),
         }
     }
 }
@@ -40,7 +52,7 @@ impl Evaluate for Expr {
 
                     Operator::UnaryMinus => match expr_val {
                         Value::Number(val) => Ok(Value::Number(-val)),
-                        other => Err(format!("{:?} cannot be negated", other)),
+                        other => Err(format!("{} cannot be negated", other)),
                     },
 
                     ref other => Err(format!("{:?} is not a valid unary operator", other)),
@@ -56,22 +68,22 @@ impl Evaluate for Expr {
                     Operator::Add => match (left_val, right_val) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
                         (Value::String(l), Value::String(r)) => Ok(Value::String(l + &r)),
-                        (l, r) => Err(format!("{:?} and {:?} cannot be added", l, r)),
+                        (l, r) => Err(format!("{} and {} cannot be added", l, r)),
                     },
 
                     Operator::Subtract => match (left_val, right_val) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
-                        (l, r) => Err(format!("{:?} and {:?} cannot be subtracted", l, r)),
+                        (l, r) => Err(format!("{} and {} cannot be subtracted", l, r)),
                     },
 
                     Operator::Multiply => match (left_val, right_val) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l * r)),
-                        (l, r) => Err(format!("{:?} and {:?} cannot be multiplied", l, r)),
+                        (l, r) => Err(format!("{} and {} cannot be multiplied", l, r)),
                     },
 
                     Operator::Divide => match (left_val, right_val) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l / r)),
-                        (l, r) => Err(format!("{:?} and {:?} cannot be added", l, r)),
+                        (l, r) => Err(format!("{} and {} cannot be added", l, r)),
                     },
 
                     // Comparison
@@ -80,22 +92,22 @@ impl Evaluate for Expr {
 
                     Operator::GreaterThan => match (left_val, right_val) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l > r)),
-                        (l, r) => Err(format!("{:?} and {:?} cannot be compared", l, r)),
+                        (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
                     },
 
                     Operator::GreaterEquals => match (left_val, right_val) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l >= r)),
-                        (l, r) => Err(format!("{:?} and {:?} cannot be compared", l, r)),
+                        (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
                     },
 
                     Operator::LessThan => match (left_val, right_val) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l < r)),
-                        (l, r) => Err(format!("{:?} and {:?} cannot be compared", l, r)),
+                        (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
                     },
 
                     Operator::LessEquals => match (left_val, right_val) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l >= r)),
-                        (l, r) => Err(format!("{:?} and {:?} cannot be compared", l, r)),
+                        (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
                     },
 
                     ref other => Err(format!("{:?} is not a valid binary operator", other)),

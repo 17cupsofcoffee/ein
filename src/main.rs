@@ -39,11 +39,14 @@ fn main() {
 fn run(source: &str) {
     let lexer = Lexer::new(source);
     let parser = ExprParser::new();
-    let ast = parser.parse(lexer).map_err(|e| format!("{:?}", e));
+    let value = parser
+        .parse(lexer)
+        .map_err(|e| format!("{:?}", e))
+        .and_then(|ast| ast.eval());
 
-    match ast {
-        Ok(ast) => println!("{:?}", ast.eval()),
-        Err(e) => eprintln!("{:#?}", e),
+    match value {
+        Ok(value) => println!("{}", value),
+        Err(e) => eprintln!("Error: {}", e),
     }
 }
 
