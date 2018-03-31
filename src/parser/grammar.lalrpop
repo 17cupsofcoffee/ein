@@ -1,5 +1,5 @@
 use ast::{Expr, Stmt, Operator};
-use tokens::Token;
+use lexer::tokens::Token;
 
 grammar<'input>;
 

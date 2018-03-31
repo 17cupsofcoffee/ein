@@ -1,7 +1,9 @@
+pub mod tokens;
+
 use std::str::CharIndices;
-use tokens::Token;
 use itertools;
 use itertools::MultiPeek;
+use self::tokens::Token;
 
 #[inline]
 fn is_id_start(ch: char) -> bool {

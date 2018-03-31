@@ -6,12 +6,9 @@ extern crate fnv;
 extern crate lalrpop_util;
 
 mod ast;
-#[allow(unknown_lints)]
-#[allow(clippy)]
-mod grammar;
 mod interpreter;
 mod lexer;
-mod tokens;
+mod parser;
 
 use interpreter::Value;
 use std::path::PathBuf;
@@ -20,7 +17,7 @@ use std::fs::File;
 use structopt::StructOpt;
 use rustyline::Editor;
 use lexer::Lexer;
-use grammar::ProgramParser;
+use parser::ProgramParser;
 use interpreter::{Context, Evaluate};
 
 #[derive(StructOpt, Debug)]
