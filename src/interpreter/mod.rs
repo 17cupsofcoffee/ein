@@ -49,6 +49,16 @@ pub trait Evaluate {
     fn eval(&self, ctx: &mut Context) -> Result<Value, String>;
 }
 
+impl Evaluate for Vec<Stmt> {
+    fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
+        let mut ret = Value::Nil;
+        for stmt in self {
+            ret = stmt.eval(ctx)?;
+        }
+        Ok(ret)
+    }
+}
+
 impl Evaluate for Stmt {
     fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
         match *self {
@@ -86,6 +96,16 @@ impl Evaluate for Expr {
                 let expr_val = expr.eval(ctx)?;
                 ctx.current_env.assign(name.clone(), expr_val.clone())?;
                 Ok(expr_val)
+            }
+
+            Expr::If(ref condition, ref when_true, ref when_false) => {
+                let cond_val = condition.eval(ctx)?;
+
+                if cond_val.is_truthy() {
+                    when_true.eval(ctx)
+                } else {
+                    when_false.eval(ctx)
+                }
             }
 
             Expr::UnaryOp(ref op, ref expr) => {

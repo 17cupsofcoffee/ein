@@ -38,13 +38,11 @@ fn main() {
 fn run(source: &str, ctx: &mut Context) -> Result<Value, String> {
     let lexer = Lexer::new(source);
     let parser = ProgramParser::new();
-    let ast = parser.parse(lexer).map_err(|e| format!("{:?}", e))?;
 
-    let mut ret = Value::Nil;
-    for stmt in ast {
-        ret = stmt.eval(ctx)?;
-    }
-    Ok(ret)
+    parser
+        .parse(lexer)
+        .map_err(|e| format!("{:?}", e))?
+        .eval(ctx)
 }
 
 fn run_file(path: &PathBuf) {

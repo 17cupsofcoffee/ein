@@ -3,7 +3,9 @@ use lexer::tokens::Token;
 
 grammar<'input>;
 
-pub Program: Vec<Stmt> = "\n"? <a: (<Stmt> "\n")*> <b: Stmt> "\n"? => {
+pub Program: Vec<Stmt> = Block;
+
+Block: Vec<Stmt> = "\n"? <a: (<Stmt> "\n")*> <b: Stmt> "\n"? => {
     let mut a = a;
     a.push(b);
     a
@@ -15,9 +17,7 @@ Stmt: Stmt = {
     Expr => Stmt::ExprStmt(<>),
 };
 
-Expr: Expr = {
-    ExprAssign
-};
+Expr: Expr = ExprAssign;
 
 ExprAssign: Expr = {
     <id: "identifier"> "=" <e: ExprAssign> => Expr::Assign(id.to_string(), Box::new(e)),
@@ -57,8 +57,14 @@ ExprUnary: Expr = {
 };
 
 ExprAtom: Expr = {
+    If,
     Literal,
     "(" <Expr> ")" => <>,
+};
+
+If: Expr = {
+    "if" <c: Expr> "{" <t: Block> "}" => Expr::If(Box::new(c), t, vec![]),
+    "if" <c: Expr> "{" <t: Block> "}" "else" "{" <f: Block> "}" => Expr::If(Box::new(c), t, f),
 };
 
 Literal: Expr = {

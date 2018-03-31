@@ -280,6 +280,39 @@ mod test {
     }
 
     #[test]
+    fn if_expr() {
+        parse(
+            "if x > 10 { true }",
+            vec![
+                Stmt::ExprStmt(Expr::If(
+                    Box::new(Expr::BinaryOp(
+                        Operator::GreaterThan,
+                        Box::new(Expr::Identifier("x".to_string())),
+                        Box::new(Expr::NumberLiteral(10.0)),
+                    )),
+                    vec![Stmt::ExprStmt(Expr::BooleanLiteral(true))],
+                    vec![],
+                )),
+            ],
+        );
+
+        parse(
+            "if x > 10 { true } else { false }",
+            vec![
+                Stmt::ExprStmt(Expr::If(
+                    Box::new(Expr::BinaryOp(
+                        Operator::GreaterThan,
+                        Box::new(Expr::Identifier("x".to_string())),
+                        Box::new(Expr::NumberLiteral(10.0)),
+                    )),
+                    vec![Stmt::ExprStmt(Expr::BooleanLiteral(true))],
+                    vec![Stmt::ExprStmt(Expr::BooleanLiteral(false))],
+                )),
+            ],
+        );
+    }
+
+    #[test]
     fn declaration() {
         parse(
             "let x = 10",
