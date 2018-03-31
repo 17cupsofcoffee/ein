@@ -7,6 +7,7 @@ extern crate lalrpop_util;
 mod ast;
 #[allow(unknown_lints)]
 #[allow(clippy)]
+#[allow(dead_code)]
 mod grammar;
 mod interpreter;
 mod lexer;
@@ -18,7 +19,7 @@ use std::fs::File;
 use structopt::StructOpt;
 use rustyline::Editor;
 use lexer::Lexer;
-use grammar::ExprParser;
+use grammar::StmtParser;
 use interpreter::Evaluate;
 
 #[derive(StructOpt, Debug)]
@@ -38,7 +39,7 @@ fn main() {
 
 fn run(source: &str) {
     let lexer = Lexer::new(source);
-    let parser = ExprParser::new();
+    let parser = StmtParser::new();
     let value = parser
         .parse(lexer)
         .map_err(|e| format!("{:?}", e))

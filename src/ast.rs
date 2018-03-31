@@ -29,3 +29,10 @@ pub enum Expr {
     UnaryOp(Operator, Box<Expr>),
     BinaryOp(Operator, Box<Expr>, Box<Expr>),
 }
+
+#[derive(Debug, PartialEq)]
+pub enum Stmt {
+    ExprStmt(Expr),
+    // TODO: Replace this with a function
+    Print(Expr),
+}

@@ -1,5 +1,5 @@
 use std::fmt;
-use ast::{Expr, Operator};
+use ast::{Expr, Operator, Stmt};
 
 #[derive(Debug, PartialEq)]
 pub enum Value {
@@ -32,6 +32,19 @@ impl fmt::Display for Value {
 
 pub trait Evaluate {
     fn eval(&self) -> Result<Value, String>;
+}
+
+impl Evaluate for Stmt {
+    fn eval(&self) -> Result<Value, String> {
+        match *self {
+            Stmt::ExprStmt(ref expr) => expr.eval(),
+            Stmt::Print(ref expr) => {
+                let value = expr.eval()?;
+                println!("{}", value);
+                Ok(Value::Nil)
+            }
+        }
+    }
 }
 
 impl Evaluate for Expr {

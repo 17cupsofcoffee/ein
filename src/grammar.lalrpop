@@ -1,7 +1,12 @@
-use ast::{Expr, Operator};
+use ast::{Expr, Stmt, Operator};
 use tokens::Token;
 
 grammar<'input>;
+
+pub Stmt: Stmt = {
+    "print" <Expr> => Stmt::Print(<>),
+    Expr => Stmt::ExprStmt(<>),
+};
 
 pub Expr: Expr = {
     ExprEq
