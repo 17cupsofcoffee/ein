@@ -34,6 +34,19 @@ impl Env {
         self.0.borrow_mut().values.insert(name, value);
     }
 
+    pub fn assign(&mut self, name: String, value: Value) -> Result<(), String> {
+        let mut inner = self.0.borrow_mut();
+        if inner.values.contains_key(&name) {
+            inner.values.insert(name, value);
+            Ok(())
+        } else {
+            match inner.parent {
+                Some(ref mut parent) => parent.assign(name, value),
+                None => Err(format!("Variable {} has not been defined", name)),
+            }
+        }
+    }
+
     pub fn get(&self, name: &str) -> Option<Value> {
         // TODO: Can we do this without cloning? Do we even need to?
         // Once we're interning strings and storing references to objects,

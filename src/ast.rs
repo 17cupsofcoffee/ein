@@ -26,6 +26,7 @@ pub enum Expr {
     StringLiteral(String),
     BooleanLiteral(bool),
 
+    Assign(String, Box<Expr>),
     UnaryOp(Operator, Box<Expr>),
     BinaryOp(Operator, Box<Expr>, Box<Expr>),
 }

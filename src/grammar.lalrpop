@@ -10,7 +10,12 @@ pub Stmt: Stmt = {
 };
 
 pub Expr: Expr = {
-    ExprEq
+    ExprAssign
+};
+
+ExprAssign: Expr = {
+    <id: "identifier"> "=" <e: ExprAssign> => Expr::Assign(id.to_string(), Box::new(e)),
+    ExprEq,
 };
 
 ExprEq: Expr = {

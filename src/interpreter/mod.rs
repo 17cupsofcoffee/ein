@@ -82,6 +82,12 @@ impl Evaluate for Expr {
                 None => Ok(Value::Nil),
             },
 
+            Expr::Assign(ref name, ref expr) => {
+                let expr_val = expr.eval(ctx)?;
+                ctx.current_env.assign(name.clone(), expr_val.clone())?;
+                Ok(expr_val)
+            }
+
             Expr::UnaryOp(ref op, ref expr) => {
                 let expr_val = expr.eval(ctx)?;
 
