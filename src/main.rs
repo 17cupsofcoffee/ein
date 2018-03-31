@@ -8,7 +8,6 @@ extern crate lalrpop_util;
 mod ast;
 #[allow(unknown_lints)]
 #[allow(clippy)]
-#[allow(dead_code)]
 mod grammar;
 mod interpreter;
 mod lexer;

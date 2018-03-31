@@ -9,13 +9,13 @@ pub Program: Vec<Stmt> = "\n"? <a: (<Stmt> "\n")*> <b: Stmt> "\n"? => {
     a
 };
 
-pub Stmt: Stmt = {
+Stmt: Stmt = {
     "print" <Expr> => Stmt::Print(<>),
     "let" <id: "identifier"> "=" <e: Expr> => Stmt::Declaration(id.to_string(), e),
     Expr => Stmt::ExprStmt(<>),
 };
 
-pub Expr: Expr = {
+Expr: Expr = {
     ExprAssign
 };
 
