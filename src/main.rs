@@ -45,8 +45,8 @@ fn run(source: &str) {
         .and_then(|ast| ast.eval());
 
     match value {
-        Ok(value) => println!("{}", value),
-        Err(e) => eprintln!("Error: {}", e),
+        Ok(value) => println!("{}\n", value),
+        Err(e) => eprintln!("Error: {}\n", e),
     }
 }
 
