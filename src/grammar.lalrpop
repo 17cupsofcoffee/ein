@@ -3,7 +3,7 @@ use tokens::Token;
 
 grammar<'input>;
 
-pub Program: Vec<Stmt> = <a: (<Stmt> "\n")*> <b: Stmt> => {
+pub Program: Vec<Stmt> = "\n"? <a: (<Stmt> "\n")*> <b: Stmt> "\n"? => {
     let mut a = a;
     a.push(b);
     a
