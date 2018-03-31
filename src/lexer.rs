@@ -38,6 +38,16 @@ impl<'input> Lexer<'input> {
         }
     }
 
+    fn skip_whitespace(&mut self) {
+        while let Some(&(_, ch)) = self.chars.peek() {
+            if ch.is_whitespace() {
+                self.chars.next();
+            } else {
+                break;
+            }
+        }
+    }
+
     fn read_string(&mut self, pos: usize) -> SpanResult<'input> {
         let mut end = pos;
 
@@ -189,7 +199,11 @@ impl<'input> Iterator for Lexer<'input> {
                 }
 
                 '"' => Some(self.read_string(i)),
-                '\n' => Some(Ok((i, Token::NewLine, i + 1))),
+
+                '\n' => {
+                    self.skip_whitespace();
+                    Some(Ok((i, Token::NewLine, i + 1)))
+                }
 
                 ch if is_id_start(ch) => Some(self.read_identifier(i)),
                 ch if ch.is_ascii_digit() => Some(self.read_number(i)),

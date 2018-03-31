@@ -3,6 +3,12 @@ use tokens::Token;
 
 grammar<'input>;
 
+pub Program: Vec<Stmt> = <a: (<Stmt> "\n")*> <b: Stmt> => {
+    let mut a = a;
+    a.push(b);
+    a
+};
+
 pub Stmt: Stmt = {
     "print" <Expr> => Stmt::Print(<>),
     "let" <id: "identifier"> "=" <e: Expr> => Stmt::Declaration(id.to_string(), e),

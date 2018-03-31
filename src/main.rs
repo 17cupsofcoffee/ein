@@ -14,13 +14,14 @@ mod interpreter;
 mod lexer;
 mod tokens;
 
+use interpreter::Value;
 use std::path::PathBuf;
 use std::io::prelude::*;
 use std::fs::File;
 use structopt::StructOpt;
 use rustyline::Editor;
 use lexer::Lexer;
-use grammar::StmtParser;
+use grammar::ProgramParser;
 use interpreter::{Context, Evaluate};
 
 #[derive(StructOpt, Debug)]
@@ -38,18 +39,16 @@ fn main() {
     }
 }
 
-fn run(source: &str, ctx: &mut Context) {
+fn run(source: &str, ctx: &mut Context) -> Result<Value, String> {
     let lexer = Lexer::new(source);
-    let parser = StmtParser::new();
-    let value = parser
-        .parse(lexer)
-        .map_err(|e| format!("{:?}", e))
-        .and_then(|ast| ast.eval(ctx));
+    let parser = ProgramParser::new();
+    let ast = parser.parse(lexer).map_err(|e| format!("{:?}", e))?;
 
-    match value {
-        Ok(value) => println!("{}\n", value),
-        Err(e) => eprintln!("Error: {}\n", e),
+    let mut ret = Value::Nil;
+    for stmt in ast {
+        ret = stmt.eval(ctx)?;
     }
+    Ok(ret)
 }
 
 fn run_file(path: &PathBuf) {
@@ -60,7 +59,10 @@ fn run_file(path: &PathBuf) {
         .expect("couldn't read file");
 
     let mut context = Context::new();
-    run(&buffer, &mut context);
+
+    if let Err(e) = run(&buffer, &mut context) {
+        eprintln!("Error: {}", e);
+    }
 }
 
 fn repl() {
@@ -77,7 +79,10 @@ fn repl() {
         match editor.readline(">> ") {
             Ok(line) => {
                 editor.add_history_entry(&line);
-                run(&line, &mut context);
+                match run(&line, &mut context) {
+                    Ok(value) => println!("{}\n", value),
+                    Err(e) => eprintln!("Error: {}\n", e),
+                }
             }
             Err(err) => {
                 eprintln!("Error: {}\n", err);
