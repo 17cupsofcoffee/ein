@@ -33,6 +33,7 @@ pub enum Expr {
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
     ExprStmt(Expr),
+    Declaration(String, Expr),
     // TODO: Replace this with a function
     Print(Expr),
 }

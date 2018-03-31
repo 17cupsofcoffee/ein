@@ -2,6 +2,7 @@ extern crate itertools;
 extern crate rustyline;
 #[macro_use]
 extern crate structopt;
+extern crate fnv;
 extern crate lalrpop_util;
 
 mod ast;
@@ -20,7 +21,7 @@ use structopt::StructOpt;
 use rustyline::Editor;
 use lexer::Lexer;
 use grammar::StmtParser;
-use interpreter::Evaluate;
+use interpreter::{Context, Evaluate};
 
 #[derive(StructOpt, Debug)]
 struct Options {
@@ -37,13 +38,13 @@ fn main() {
     }
 }
 
-fn run(source: &str) {
+fn run(source: &str, ctx: &mut Context) {
     let lexer = Lexer::new(source);
     let parser = StmtParser::new();
     let value = parser
         .parse(lexer)
         .map_err(|e| format!("{:?}", e))
-        .and_then(|ast| ast.eval());
+        .and_then(|ast| ast.eval(ctx));
 
     match value {
         Ok(value) => println!("{}\n", value),
@@ -57,23 +58,26 @@ fn run_file(path: &PathBuf) {
     let mut buffer = String::new();
     file.read_to_string(&mut buffer)
         .expect("couldn't read file");
-    run(&buffer);
+
+    let mut context = Context::new();
+    run(&buffer, &mut context);
 }
 
 fn repl() {
-    let mut editor = Editor::<()>::new();
-
-    let _ = editor.load_history("history.txt");
-
     println!("| Ein 0.1.0");
     println!("| Copyright © 2018 Joe Clay");
     println!("| Released under the MIT License\n");
+
+    let mut editor = Editor::<()>::new();
+    let _ = editor.load_history("history.txt");
+
+    let mut context = Context::new();
 
     loop {
         match editor.readline(">> ") {
             Ok(line) => {
                 editor.add_history_entry(&line);
-                run(&line);
+                run(&line, &mut context);
             }
             Err(err) => {
                 eprintln!("Error: {}\n", err);

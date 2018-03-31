@@ -1,7 +1,10 @@
+mod env;
+
 use std::fmt;
 use ast::{Expr, Operator, Stmt};
+use self::env::Env;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Nil,
     Boolean(bool),
@@ -30,16 +33,35 @@ impl fmt::Display for Value {
     }
 }
 
+pub struct Context {
+    current_env: Env,
+}
+
+impl Context {
+    pub fn new() -> Context {
+        Context {
+            current_env: Env::root(),
+        }
+    }
+}
+
 pub trait Evaluate {
-    fn eval(&self) -> Result<Value, String>;
+    fn eval(&self, ctx: &mut Context) -> Result<Value, String>;
 }
 
 impl Evaluate for Stmt {
-    fn eval(&self) -> Result<Value, String> {
+    fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
         match *self {
-            Stmt::ExprStmt(ref expr) => expr.eval(),
+            Stmt::ExprStmt(ref expr) => expr.eval(ctx),
+
+            Stmt::Declaration(ref name, ref expr) => {
+                let value = expr.eval(ctx)?;
+                ctx.current_env.declare(name.clone(), value);
+                Ok(Value::Nil)
+            }
+
             Stmt::Print(ref expr) => {
-                let value = expr.eval()?;
+                let value = expr.eval(ctx)?;
                 println!("{}", value);
                 Ok(Value::Nil)
             }
@@ -48,17 +70,20 @@ impl Evaluate for Stmt {
 }
 
 impl Evaluate for Expr {
-    fn eval(&self) -> Result<Value, String> {
+    fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
         match *self {
             Expr::Nil => Ok(Value::Nil),
             Expr::BooleanLiteral(val) => Ok(Value::Boolean(val)),
             Expr::NumberLiteral(val) => Ok(Value::Number(val)),
             Expr::StringLiteral(ref val) => Ok(Value::String(val.clone())),
 
-            Expr::Identifier(_) => unimplemented!(),
+            Expr::Identifier(ref name) => match ctx.current_env.get(name) {
+                Some(value) => Ok(value),
+                None => Ok(Value::Nil),
+            },
 
             Expr::UnaryOp(ref op, ref expr) => {
-                let expr_val = expr.eval()?;
+                let expr_val = expr.eval(ctx)?;
 
                 match *op {
                     Operator::Not => Ok(Value::Boolean(!expr_val.is_truthy())),
@@ -73,8 +98,8 @@ impl Evaluate for Expr {
             }
 
             Expr::BinaryOp(ref op, ref left, ref right) => {
-                let left_val = left.eval()?;
-                let right_val = right.eval()?;
+                let left_val = left.eval(ctx)?;
+                let right_val = right.eval(ctx)?;
 
                 match *op {
                     // Arithmatic

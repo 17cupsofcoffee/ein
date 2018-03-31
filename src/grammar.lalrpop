@@ -5,6 +5,7 @@ grammar<'input>;
 
 pub Stmt: Stmt = {
     "print" <Expr> => Stmt::Print(<>),
+    "let" <id: "identifier"> "=" <e: Expr> => Stmt::Declaration(id.to_string(), e),
     Expr => Stmt::ExprStmt(<>),
 };
 
