@@ -227,40 +227,44 @@ mod test {
     }
 
     #[test]
-    fn if_expr() {
-        parse_expr(
-            "if x > 10 { print true; }",
-            Expr::If(
-                Box::new(Expr::BinaryOp(
-                    Operator::GreaterThan,
-                    Box::new(Expr::Identifier("x".to_string())),
-                    Box::new(Expr::NumberLiteral(10.0)),
-                )),
-                vec![Stmt::Print(Expr::BooleanLiteral(true))],
-                vec![],
-            ),
-        );
-
-        parse_expr(
-            "if x > 10 { print true; } else { print false; }",
-            Expr::If(
-                Box::new(Expr::BinaryOp(
-                    Operator::GreaterThan,
-                    Box::new(Expr::Identifier("x".to_string())),
-                    Box::new(Expr::NumberLiteral(10.0)),
-                )),
-                vec![Stmt::Print(Expr::BooleanLiteral(true))],
-                vec![Stmt::Print(Expr::BooleanLiteral(false))],
-            ),
-        );
-    }
-
-    #[test]
     fn declaration() {
         parse_stmt(
             "let x = 10;",
             vec![
                 Stmt::Declaration("x".to_string(), Expr::NumberLiteral(10.0)),
+            ],
+        );
+    }
+
+    #[test]
+    fn if_stmt() {
+        parse_stmt(
+            "if x > 10 { print true; }",
+            vec![
+                Stmt::If(
+                    Expr::BinaryOp(
+                        Operator::GreaterThan,
+                        Box::new(Expr::Identifier("x".to_string())),
+                        Box::new(Expr::NumberLiteral(10.0)),
+                    ),
+                    vec![Stmt::Print(Expr::BooleanLiteral(true))],
+                    vec![],
+                ),
+            ],
+        );
+
+        parse_stmt(
+            "if x > 10 { print true; } else { print false; }",
+            vec![
+                Stmt::If(
+                    Expr::BinaryOp(
+                        Operator::GreaterThan,
+                        Box::new(Expr::Identifier("x".to_string())),
+                        Box::new(Expr::NumberLiteral(10.0)),
+                    ),
+                    vec![Stmt::Print(Expr::BooleanLiteral(true))],
+                    vec![Stmt::Print(Expr::BooleanLiteral(false))],
+                ),
             ],
         );
     }

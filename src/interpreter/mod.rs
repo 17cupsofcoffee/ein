@@ -70,6 +70,18 @@ impl Evaluate for Stmt {
                 Ok(Value::Nil)
             }
 
+            Stmt::If(ref condition, ref when_true, ref when_false) => {
+                let cond_val = condition.eval(ctx)?;
+
+                if cond_val.is_truthy() {
+                    when_true.eval(ctx)?;
+                } else {
+                    when_false.eval(ctx)?;
+                }
+
+                Ok(Value::Nil)
+            }
+
             Stmt::Print(ref expr) => {
                 let value = expr.eval(ctx)?;
                 println!("{}", value);
@@ -96,16 +108,6 @@ impl Evaluate for Expr {
                 let expr_val = expr.eval(ctx)?;
                 ctx.current_env.assign(name.clone(), expr_val.clone())?;
                 Ok(expr_val)
-            }
-
-            Expr::If(ref condition, ref when_true, ref when_false) => {
-                let cond_val = condition.eval(ctx)?;
-
-                if cond_val.is_truthy() {
-                    when_true.eval(ctx)
-                } else {
-                    when_false.eval(ctx)
-                }
             }
 
             Expr::UnaryOp(ref op, ref expr) => {

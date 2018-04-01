@@ -7,12 +7,18 @@ pub Program: Vec<Stmt> = StmtList;
 
 Block: Vec<Stmt> = "{" <StmtList> "}";
 
-StmtList: Vec<Stmt> = (<Stmt> ";")*;
+StmtList: Vec<Stmt> = Stmt*;
 
 Stmt: Stmt = {
-    "print" <Expr> => Stmt::Print(<>),
-    "let" <id: "identifier"> "=" <e: Expr> => Stmt::Declaration(id.to_string(), e),
-    Expr => Stmt::ExprStmt(<>),
+    If,
+    "print" <Expr> ";" => Stmt::Print(<>),
+    "let" <id: "identifier"> "=" <e: Expr> ";" => Stmt::Declaration(id.to_string(), e),
+    <Expr> ";" => Stmt::ExprStmt(<>),
+};
+
+If: Stmt = {
+    "if" <Expr> <Block> => Stmt::If(<>, vec![]),
+    "if" <Expr> <Block> "else" <Block> => Stmt::If(<>),
 };
 
 pub Expr: Expr = ExprAssign;
@@ -55,14 +61,8 @@ ExprUnary: Expr = {
 };
 
 ExprAtom: Expr = {
-    If,
     Literal,
     "(" <Expr> ")" => <>,
-};
-
-If: Expr = {
-    "if" <c: Expr> <t: Block> => Expr::If(Box::new(c), t, vec![]),
-    "if" <c: Expr> <t: Block> "else" <f: Block> => Expr::If(Box::new(c), t, f),
 };
 
 Literal: Expr = {
