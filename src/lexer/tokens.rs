@@ -22,6 +22,8 @@ pub enum Token<'input> {
     GreaterEqual,
     Less,
     LessEqual,
+    AmpAmp,
+    PipePipe,
 
     // Literals
     Identifier(&'input str),
@@ -29,14 +31,12 @@ pub enum Token<'input> {
     Number(f64),
 
     // Keywords
-    And,
     Else,
     False,
     Fn,
     For,
     If,
     Nil,
-    Or,
     Print,
     Return,
     This,

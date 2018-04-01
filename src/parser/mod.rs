@@ -59,6 +59,19 @@ mod test {
     }
 
     #[test]
+    fn logic() {
+        parse_expr(
+            "nil && nil",
+            Expr::BinaryOp(Operator::And, Box::new(Expr::Nil), Box::new(Expr::Nil)),
+        );
+
+        parse_expr(
+            "nil || nil",
+            Expr::BinaryOp(Operator::Or, Box::new(Expr::Nil), Box::new(Expr::Nil)),
+        );
+    }
+
+    #[test]
     fn equality() {
         parse_expr(
             "nil == nil",
@@ -201,6 +214,19 @@ mod test {
                         Box::new(Expr::NumberLiteral(4.0)),
                     )),
                     Box::new(Expr::NumberLiteral(5.0)),
+                )),
+            ),
+        );
+
+        parse_expr(
+            "nil || nil && nil",
+            Expr::BinaryOp(
+                Operator::Or,
+                Box::new(Expr::Nil),
+                Box::new(Expr::BinaryOp(
+                    Operator::And,
+                    Box::new(Expr::Nil),
+                    Box::new(Expr::Nil),
                 )),
             ),
         );

@@ -1,6 +1,8 @@
 #[derive(Debug, PartialEq)]
 pub enum Operator {
     // Binary
+    And,
+    Or,
     Equals,
     NotEquals,
     GreaterThan,

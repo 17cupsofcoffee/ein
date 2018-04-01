@@ -110,14 +110,12 @@ impl<'input> Lexer<'input> {
             .unwrap_or(self.source.len());
 
         match &self.source[pos..end] {
-            "and" => Ok((pos, Token::And, end)),
             "else" => Ok((pos, Token::Else, end)),
             "false" => Ok((pos, Token::False, end)),
             "fn" => Ok((pos, Token::Fn, end)),
             "for" => Ok((pos, Token::For, end)),
             "if" => Ok((pos, Token::If, end)),
             "nil" => Ok((pos, Token::Nil, end)),
-            "or" => Ok((pos, Token::Or, end)),
             "print" => Ok((pos, Token::Print, end)),
             "return" => Ok((pos, Token::Return, end)),
             "this" => Ok((pos, Token::This, end)),
@@ -195,6 +193,24 @@ impl<'input> Iterator for Lexer<'input> {
                     }
                 }
 
+                '&' => {
+                    if let Some((_, '&')) = self.lookahead {
+                        self.bump();
+                        Some(Ok((i, Token::AmpAmp, i + 2)))
+                    } else {
+                        Some(Err(format!("Unexpected token: {}", ch)))
+                    }
+                }
+
+                '|' => {
+                    if let Some((_, '|')) = self.lookahead {
+                        self.bump();
+                        Some(Ok((i, Token::PipePipe, i + 2)))
+                    } else {
+                        Some(Err(format!("Unexpected token: {}", ch)))
+                    }
+                }
+
                 '"' => Some(self.read_string(i)),
                 ch if is_id_start(ch) => Some(self.read_identifier(i)),
                 ch if ch.is_ascii_digit() => Some(self.read_number(i)),
@@ -245,7 +261,7 @@ mod test {
     #[test]
     fn operators() {
         lex(
-            ", . + - * / = == ! != > >= < <=",
+            ", . + - * / = == ! != > >= < <= && ||",
             vec![
                 (0, Token::Comma, 1),
                 (2, Token::Dot, 3),
@@ -261,6 +277,8 @@ mod test {
                 (24, Token::GreaterEqual, 26),
                 (27, Token::Less, 28),
                 (29, Token::LessEqual, 31),
+                (32, Token::AmpAmp, 34),
+                (35, Token::PipePipe, 37),
             ],
         );
     }
@@ -316,14 +334,12 @@ mod test {
 
     #[test]
     fn keywords() {
-        lex("and", vec![(0, Token::And, 3)]);
         lex("else", vec![(0, Token::Else, 4)]);
         lex("false", vec![(0, Token::False, 5)]);
         lex("fn", vec![(0, Token::Fn, 2)]);
         lex("for", vec![(0, Token::For, 3)]);
         lex("if", vec![(0, Token::If, 2)]);
         lex("nil", vec![(0, Token::Nil, 3)]);
-        lex("or", vec![(0, Token::Or, 2)]);
         lex("print", vec![(0, Token::Print, 5)]);
         lex("return", vec![(0, Token::Return, 6)]);
         lex("this", vec![(0, Token::This, 4)]);

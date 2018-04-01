@@ -25,6 +25,16 @@ pub Expr: Expr = ExprAssign;
 
 ExprAssign: Expr = {
     <id: "identifier"> "=" <e: ExprAssign> => Expr::Assign(id.to_string(), Box::new(e)),
+    ExprOr,
+};
+
+ExprOr: Expr = {
+    <l: ExprOr> "||" <r: ExprAnd> => Expr::BinaryOp(Operator::Or, Box::new(l), Box::new(r)),
+    ExprAnd,
+};
+
+ExprAnd: Expr = {
+    <l: ExprAnd> "&&" <r: ExprEq> => Expr::BinaryOp(Operator::And, Box::new(l), Box::new(r)),
     ExprEq,
 };
 
@@ -101,6 +111,8 @@ extern {
         ">=" => Token::GreaterEqual,
         "<" => Token::Less,
         "<=" => Token::LessEqual,
+        "&&" => Token::AmpAmp,
+        "||" => Token::PipePipe,
 
         // Literals
         "identifier" => Token::Identifier(<&'input str>),
@@ -108,14 +120,12 @@ extern {
         "number" => Token::Number(<f64>),
 
         // Keywords
-        "and" => Token::And,
         "else" => Token::Else,
         "false" => Token::False,
         "fn" => Token::Fn,
         "for" => Token::For,
         "if" => Token::If,
         "nil" => Token::Nil,
-        "or" => Token::Or,
         "print" => Token::Print,
         "return" => Token::Return,
         "this" => Token::This,
