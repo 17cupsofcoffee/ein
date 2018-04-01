@@ -1,7 +1,7 @@
 fn sayHello(name) {
-    "Hello, " + name + "!"
+    return "Hello, " + name + "!";
 }
 
-let greeting = sayHello("Ein")
+let greeting = sayHello("Ein");
 
-print greeting
+print greeting;

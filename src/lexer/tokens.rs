@@ -7,6 +7,7 @@ pub enum Token<'input> {
     CloseBracket,
     OpenParen,
     CloseParen,
+    Semicolon,
     Comma,
     Dot,
     Plus,
@@ -21,7 +22,6 @@ pub enum Token<'input> {
     GreaterEqual,
     Less,
     LessEqual,
-    NewLine,
 
     // Literals
     Identifier(&'input str),

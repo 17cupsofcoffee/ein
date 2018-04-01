@@ -3,13 +3,11 @@ use lexer::tokens::Token;
 
 grammar<'input>;
 
-pub Program: Vec<Stmt> = Block;
+pub Program: Vec<Stmt> = StmtList;
 
-Block: Vec<Stmt> = "\n"? <a: (<Stmt> "\n")*> <b: Stmt> "\n"? => {
-    let mut a = a;
-    a.push(b);
-    a
-};
+Block: Vec<Stmt> = "{" <StmtList> "}";
+
+StmtList: Vec<Stmt> = (<Stmt> ";")*;
 
 Stmt: Stmt = {
     "print" <Expr> => Stmt::Print(<>),
@@ -17,7 +15,7 @@ Stmt: Stmt = {
     Expr => Stmt::ExprStmt(<>),
 };
 
-Expr: Expr = ExprAssign;
+pub Expr: Expr = ExprAssign;
 
 ExprAssign: Expr = {
     <id: "identifier"> "=" <e: ExprAssign> => Expr::Assign(id.to_string(), Box::new(e)),
@@ -63,8 +61,8 @@ ExprAtom: Expr = {
 };
 
 If: Expr = {
-    "if" <c: Expr> "{" <t: Block> "}" => Expr::If(Box::new(c), t, vec![]),
-    "if" <c: Expr> "{" <t: Block> "}" "else" "{" <f: Block> "}" => Expr::If(Box::new(c), t, f),
+    "if" <c: Expr> <t: Block> => Expr::If(Box::new(c), t, vec![]),
+    "if" <c: Expr> <t: Block> "else" <f: Block> => Expr::If(Box::new(c), t, f),
 };
 
 Literal: Expr = {
@@ -88,6 +86,7 @@ extern {
         "]" => Token::CloseBracket,
         "(" => Token::OpenParen,
         ")" => Token::CloseParen,
+        ";" => Token::Semicolon,
         "," => Token::Comma,
         "." => Token::Dot,
         "+" => Token::Plus,
@@ -102,7 +101,6 @@ extern {
         ">=" => Token::GreaterEqual,
         "<" => Token::Less,
         "<=" => Token::LessEqual,
-        "\n" => Token::NewLine,
 
         // Literals
         "identifier" => Token::Identifier(<&'input str>),

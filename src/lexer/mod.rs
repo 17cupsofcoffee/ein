@@ -1,8 +1,6 @@
 pub mod tokens;
 
 use std::str::CharIndices;
-use itertools;
-use itertools::MultiPeek;
 use self::tokens::Token;
 
 #[inline]
@@ -19,105 +17,99 @@ pub type SpanResult<'input> = Result<(usize, Token<'input>, usize), String>;
 
 pub struct Lexer<'input> {
     source: &'input str,
-    chars: MultiPeek<CharIndices<'input>>,
+    chars: CharIndices<'input>,
+    lookahead: Option<(usize, char)>,
+    lookahead2: Option<(usize, char)>,
 }
 
 impl<'input> Lexer<'input> {
     pub fn new(source: &'input str) -> Lexer<'input> {
+        let mut chars = source.char_indices();
+        let lookahead = chars.next();
+        let lookahead2 = chars.next();
+
         Lexer {
             source,
-            chars: itertools::multipeek(source.char_indices()),
+            chars,
+            lookahead,
+            lookahead2,
         }
+    }
+
+    fn bump(&mut self) -> Option<(usize, char)> {
+        let next = self.lookahead;
+        self.lookahead = self.lookahead2;
+        self.lookahead2 = self.chars.next();
+        next
+    }
+
+    fn take_until<F>(&mut self, mut terminate: F) -> Option<usize>
+    where
+        F: FnMut(char) -> bool,
+    {
+        while let Some((i, ch)) = self.lookahead {
+            if terminate(ch) {
+                return Some(i);
+            } else {
+                self.bump();
+            }
+        }
+
+        None
+    }
+
+    fn take_while<F>(&mut self, mut condition: F) -> Option<usize>
+    where
+        F: FnMut(char) -> bool,
+    {
+        self.take_until(|ch| !condition(ch))
     }
 
     fn skip_to_line_end(&mut self) {
-        while let Some(&(_, ch)) = self.chars.peek() {
-            if ch != '\n' {
-                self.chars.next();
-            } else {
-                break;
-            }
-        }
+        self.take_while(|ch| ch != '\n');
     }
 
     fn skip_whitespace(&mut self) {
-        while let Some(&(_, ch)) = self.chars.peek() {
-            if ch.is_whitespace() {
-                self.chars.next();
-            } else {
-                break;
-            }
-        }
+        self.take_while(|ch| ch.is_whitespace());
     }
 
     fn read_string(&mut self, pos: usize) -> SpanResult<'input> {
-        let mut end = pos;
-
-        while let Some((i, ch)) = self.chars.next() {
-            if ch == '"' {
-                return Ok((pos, Token::String(&self.source[pos + 1..end + 1]), end + 1));
-            } else {
-                end = i;
+        match self.take_until(|ch| ch == '"') {
+            Some(i) => {
+                self.bump();
+                Ok((pos, Token::String(&self.source[pos + 1..i]), i + 1))
             }
+            None => Err(format!("Unterminated string")),
         }
-
-        Err(format!("Unterminated string"))
     }
 
     fn read_number(&mut self, pos: usize) -> SpanResult<'input> {
-        let mut end = pos;
-        let mut consumed_dot = false;
+        let mut end = self.take_while(|ch| ch.is_ascii_digit());
 
-        while let Some(&(i, ch)) = self.chars.peek() {
-            match ch {
-                // If we encounter a dot, we need to do an extra character of
-                // lookahead to check whether it's a decimal or a field
-                // access
-                // TODO: This code could almost certainly be cleaner
-                '.' if !consumed_dot => match self.chars.peek() {
-                    Some(&(_, next_ch)) if next_ch.is_ascii_digit() => {
-                        end = i;
-                        consumed_dot = true;
-                        self.chars.next();
-                    }
-                    _ => {
-                        break;
-                    }
-                },
-                ch if ch.is_ascii_digit() => {
-                    end = i;
-                    self.chars.next();
-                }
-                _ => {
-                    break;
+        if let Some((_, '.')) = self.lookahead {
+            // Check if it's a decimal or a field access
+            if let Some((_, next_ch)) = self.lookahead2 {
+                if next_ch.is_ascii_digit() {
+                    self.bump();
+                    end = self.take_while(|ch| ch.is_ascii_digit());
                 }
             }
         }
 
+        let end = end.unwrap_or(self.source.len());
+
         Ok((
             pos,
-            Token::Number(
-                self.source[pos..end + 1]
-                    .parse()
-                    .expect("unparsable number"),
-            ),
+            Token::Number(self.source[pos..end].parse().expect("unparsable number")),
             end,
         ))
     }
 
     fn read_identifier(&mut self, pos: usize) -> SpanResult<'input> {
-        let mut end = pos;
+        let end = self.take_while(|ch| is_id_start(ch) || is_id_continue(ch))
+            .unwrap_or(self.source.len());
 
-        while let Some(&(i, ch)) = self.chars.peek() {
-            if is_id_start(ch) || is_id_continue(ch) {
-                end = i;
-                self.chars.next();
-            } else {
-                break;
-            }
-        }
-
-        match &self.source[pos..end + 1] {
+        match &self.source[pos..end] {
             "and" => Ok((pos, Token::And, end)),
             "else" => Ok((pos, Token::Else, end)),
             "false" => Ok((pos, Token::False, end)),
@@ -141,14 +133,17 @@ impl<'input> Iterator for Lexer<'input> {
     type Item = SpanResult<'input>;
 
     fn next(&mut self) -> Option<SpanResult<'input>> {
-        while let Some((i, ch)) = self.chars.next() {
-            return match ch {
+        self.skip_whitespace();
+
+        if let Some((i, ch)) = self.bump() {
+            match ch {
                 '{' => Some(Ok((i, Token::OpenBrace, i + 1))),
                 '}' => Some(Ok((i, Token::CloseBrace, i + 1))),
                 '(' => Some(Ok((i, Token::OpenParen, i + 1))),
                 ')' => Some(Ok((i, Token::CloseParen, i + 1))),
                 '[' => Some(Ok((i, Token::OpenBracket, i + 1))),
                 ']' => Some(Ok((i, Token::CloseBracket, i + 1))),
+                ';' => Some(Ok((i, Token::Semicolon, i + 1))),
                 ',' => Some(Ok((i, Token::Comma, i + 1))),
                 '.' => Some(Ok((i, Token::Dot, i + 1))),
                 '+' => Some(Ok((i, Token::Plus, i + 1))),
@@ -156,17 +151,17 @@ impl<'input> Iterator for Lexer<'input> {
                 '*' => Some(Ok((i, Token::Star, i + 1))),
 
                 '/' => {
-                    if let Some(&(_, '/')) = self.chars.peek() {
+                    if let Some((_, '/')) = self.lookahead {
                         self.skip_to_line_end();
-                        continue;
+                        self.next()
                     } else {
                         Some(Ok((i, Token::Slash, i + 1)))
                     }
                 }
 
                 '!' => {
-                    if let Some(&(_, '=')) = self.chars.peek() {
-                        self.chars.next();
+                    if let Some((_, '=')) = self.lookahead {
+                        self.bump();
                         Some(Ok((i, Token::NotEqual, i + 2)))
                     } else {
                         Some(Ok((i, Token::Not, i + 1)))
@@ -174,8 +169,8 @@ impl<'input> Iterator for Lexer<'input> {
                 }
 
                 '=' => {
-                    if let Some(&(_, '=')) = self.chars.peek() {
-                        self.chars.next();
+                    if let Some((_, '=')) = self.lookahead {
+                        self.bump();
                         Some(Ok((i, Token::EqualEqual, i + 2)))
                     } else {
                         Some(Ok((i, Token::Equal, i + 1)))
@@ -183,8 +178,8 @@ impl<'input> Iterator for Lexer<'input> {
                 }
 
                 '>' => {
-                    if let Some(&(_, '=')) = self.chars.peek() {
-                        self.chars.next();
+                    if let Some((_, '=')) = self.lookahead {
+                        self.bump();
                         Some(Ok((i, Token::GreaterEqual, i + 2)))
                     } else {
                         Some(Ok((i, Token::Greater, i + 1)))
@@ -192,8 +187,8 @@ impl<'input> Iterator for Lexer<'input> {
                 }
 
                 '<' => {
-                    if let Some(&(_, '=')) = self.chars.peek() {
-                        self.chars.next();
+                    if let Some((_, '=')) = self.lookahead {
+                        self.bump();
                         Some(Ok((i, Token::LessEqual, i + 2)))
                     } else {
                         Some(Ok((i, Token::Less, i + 1)))
@@ -201,21 +196,14 @@ impl<'input> Iterator for Lexer<'input> {
                 }
 
                 '"' => Some(self.read_string(i)),
-
-                '\n' => {
-                    self.skip_whitespace();
-                    Some(Ok((i, Token::NewLine, i + 1)))
-                }
-
                 ch if is_id_start(ch) => Some(self.read_identifier(i)),
                 ch if ch.is_ascii_digit() => Some(self.read_number(i)),
-                ch if ch.is_whitespace() => continue,
 
                 ch => Some(Err(format!("Unexpected token: {}", ch))),
-            };
+            }
+        } else {
+            None
         }
-
-        None
     }
 }
 
@@ -280,11 +268,11 @@ mod test {
     #[test]
     fn line_comment() {
         lex(
-            "123 // comment\n 123",
+            "123; // comment\n 123",
             vec![
-                (0, Token::Number(123.0), 2),
-                (14, Token::NewLine, 15),
-                (16, Token::Number(123.0), 18),
+                (0, Token::Number(123.0), 3),
+                (3, Token::Semicolon, 4),
+                (17, Token::Number(123.0), 20),
             ],
         );
     }
@@ -293,18 +281,18 @@ mod test {
     fn string() {
         lex(
             "\"hello, world\"",
-            vec![(0, Token::String("hello, world"), 13)],
+            vec![(0, Token::String("hello, world"), 14)],
         );
     }
 
     #[test]
     fn integer() {
-        lex("123", vec![(0, Token::Number(123.0), 2)]);
+        lex("123", vec![(0, Token::Number(123.0), 3)]);
     }
 
     #[test]
     fn decimal() {
-        lex("123.45", vec![(0, Token::Number(123.45), 5)]);
+        lex("123.45", vec![(0, Token::Number(123.45), 6)]);
     }
 
     #[test]
@@ -312,35 +300,35 @@ mod test {
         lex(
             "123.prop",
             vec![
-                (0, Token::Number(123.0), 2),
+                (0, Token::Number(123.0), 3),
                 (3, Token::Dot, 4),
-                (4, Token::Identifier("prop"), 7),
+                (4, Token::Identifier("prop"), 8),
             ],
         );
     }
 
     #[test]
     fn identifiers() {
-        lex("id", vec![(0, Token::Identifier("id"), 1)]);
-        lex("_id", vec![(0, Token::Identifier("_id"), 2)]);
-        lex("id123", vec![(0, Token::Identifier("id123"), 4)]);
+        lex("id", vec![(0, Token::Identifier("id"), 2)]);
+        lex("_id", vec![(0, Token::Identifier("_id"), 3)]);
+        lex("id123", vec![(0, Token::Identifier("id123"), 5)]);
     }
 
     #[test]
     fn keywords() {
-        lex("and", vec![(0, Token::And, 2)]);
-        lex("else", vec![(0, Token::Else, 3)]);
-        lex("false", vec![(0, Token::False, 4)]);
-        lex("fn", vec![(0, Token::Fn, 1)]);
-        lex("for", vec![(0, Token::For, 2)]);
-        lex("if", vec![(0, Token::If, 1)]);
-        lex("nil", vec![(0, Token::Nil, 2)]);
-        lex("or", vec![(0, Token::Or, 1)]);
-        lex("print", vec![(0, Token::Print, 4)]);
-        lex("return", vec![(0, Token::Return, 5)]);
-        lex("this", vec![(0, Token::This, 3)]);
-        lex("true", vec![(0, Token::True, 3)]);
-        lex("let", vec![(0, Token::Let, 2)]);
-        lex("while", vec![(0, Token::While, 4)]);
+        lex("and", vec![(0, Token::And, 3)]);
+        lex("else", vec![(0, Token::Else, 4)]);
+        lex("false", vec![(0, Token::False, 5)]);
+        lex("fn", vec![(0, Token::Fn, 2)]);
+        lex("for", vec![(0, Token::For, 3)]);
+        lex("if", vec![(0, Token::If, 2)]);
+        lex("nil", vec![(0, Token::Nil, 3)]);
+        lex("or", vec![(0, Token::Or, 2)]);
+        lex("print", vec![(0, Token::Print, 5)]);
+        lex("return", vec![(0, Token::Return, 6)]);
+        lex("this", vec![(0, Token::This, 4)]);
+        lex("true", vec![(0, Token::True, 4)]);
+        lex("let", vec![(0, Token::Let, 3)]);
+        lex("while", vec![(0, Token::While, 5)]);
     }
 }
