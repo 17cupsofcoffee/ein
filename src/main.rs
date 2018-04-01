@@ -1,4 +1,3 @@
-extern crate itertools;
 extern crate rustyline;
 #[macro_use]
 extern crate structopt;

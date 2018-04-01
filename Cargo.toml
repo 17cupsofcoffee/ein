@@ -6,7 +6,6 @@ authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
 [dependencies]
 structopt = "0.2.5"
 rustyline = "1.0.0"
-itertools = "0.7.8"
 lalrpop-util = "0.15.0"
 fnv = "1.0.3"
 
