@@ -20,6 +20,10 @@ impl Value {
             _ => true,
         }
     }
+
+    pub fn is_falsey(&self) -> bool {
+        !self.is_truthy()
+    }
 }
 
 impl fmt::Display for Value {
@@ -126,55 +130,124 @@ impl Evaluate for Expr {
             }
 
             Expr::BinaryOp(ref op, ref left, ref right) => {
-                let left_val = left.eval(ctx)?;
-                let right_val = right.eval(ctx)?;
-
                 match *op {
                     // Arithmatic
-                    Operator::Add => match (left_val, right_val) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
-                        (Value::String(l), Value::String(r)) => Ok(Value::String(l + &r)),
-                        (l, r) => Err(format!("{} and {} cannot be added", l, r)),
-                    },
+                    Operator::Add => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
 
-                    Operator::Subtract => match (left_val, right_val) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
-                        (l, r) => Err(format!("{} and {} cannot be subtracted", l, r)),
-                    },
+                        match (left_val, right_val) {
+                            (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
+                            (Value::String(l), Value::String(r)) => Ok(Value::String(l + &r)),
+                            (l, r) => Err(format!("{} and {} cannot be added", l, r)),
+                        }
+                    }
 
-                    Operator::Multiply => match (left_val, right_val) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l * r)),
-                        (l, r) => Err(format!("{} and {} cannot be multiplied", l, r)),
-                    },
+                    Operator::Subtract => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
 
-                    Operator::Divide => match (left_val, right_val) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l / r)),
-                        (l, r) => Err(format!("{} and {} cannot be added", l, r)),
-                    },
+                        match (left_val, right_val) {
+                            (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
+                            (l, r) => Err(format!("{} and {} cannot be subtracted", l, r)),
+                        }
+                    }
+
+                    Operator::Multiply => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
+
+                        match (left_val, right_val) {
+                            (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l * r)),
+                            (l, r) => Err(format!("{} and {} cannot be multiplied", l, r)),
+                        }
+                    }
+
+                    Operator::Divide => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
+
+                        match (left_val, right_val) {
+                            (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l / r)),
+                            (l, r) => Err(format!("{} and {} cannot be divided", l, r)),
+                        }
+                    }
 
                     // Comparison
-                    Operator::Equals => Ok(Value::Boolean(left_val == right_val)),
-                    Operator::NotEquals => Ok(Value::Boolean(left_val != right_val)),
+                    Operator::Equals => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
 
-                    Operator::GreaterThan => match (left_val, right_val) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l > r)),
-                        (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
-                    },
+                        Ok(Value::Boolean(left_val == right_val))
+                    }
 
-                    Operator::GreaterEquals => match (left_val, right_val) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l >= r)),
-                        (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
-                    },
+                    Operator::NotEquals => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
 
-                    Operator::LessThan => match (left_val, right_val) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l < r)),
-                        (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
-                    },
+                        Ok(Value::Boolean(left_val != right_val))
+                    }
 
-                    Operator::LessEquals => match (left_val, right_val) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l <= r)),
-                        (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
-                    },
+                    Operator::GreaterThan => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
+
+                        match (left_val, right_val) {
+                            (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l > r)),
+                            (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
+                        }
+                    }
+
+                    Operator::GreaterEquals => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
+
+                        match (left_val, right_val) {
+                            (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l >= r)),
+                            (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
+                        }
+                    }
+
+                    Operator::LessThan => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
+
+                        match (left_val, right_val) {
+                            (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l < r)),
+                            (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
+                        }
+                    }
+
+                    Operator::LessEquals => {
+                        let left_val = left.eval(ctx)?;
+                        let right_val = right.eval(ctx)?;
+
+                        match (left_val, right_val) {
+                            (Value::Number(l), Value::Number(r)) => Ok(Value::Boolean(l <= r)),
+                            (l, r) => Err(format!("{} and {} cannot be compared", l, r)),
+                        }
+                    }
+
+                    // Logic
+                    Operator::And => {
+                        let left_val = left.eval(ctx)?;
+
+                        if left_val.is_falsey() {
+                            Ok(left_val)
+                        } else {
+                            right.eval(ctx)
+                        }
+                    }
+
+                    Operator::Or => {
+                        let left_val = left.eval(ctx)?;
+
+                        if left_val.is_truthy() {
+                            Ok(left_val)
+                        } else {
+                            right.eval(ctx)
+                        }
+                    }
 
                     ref other => Err(format!("{:?} is not a valid binary operator", other)),
                 }
