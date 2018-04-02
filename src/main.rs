@@ -16,8 +16,6 @@ use std::io::prelude::*;
 use std::fs::File;
 use structopt::StructOpt;
 use rustyline::Editor;
-use lexer::Lexer;
-use parser::{ExprParser, ProgramParser};
 use interpreter::{Context, Evaluate};
 
 #[derive(StructOpt, Debug)]
@@ -42,11 +40,7 @@ fn run_file(path: &PathBuf) {
     file.read_to_string(&mut buffer)
         .expect("couldn't read file");
 
-    let lexer = Lexer::new(&buffer);
-    let parser = ProgramParser::new();
-
-    let ret = parser
-        .parse(lexer)
+    let ret = parser::parse_program(&buffer)
         .map_err(|e| format!("{}", e))
         .map(|ast| ast.eval(&mut Context::new()));
 
@@ -64,17 +58,15 @@ fn repl() {
     let _ = editor.load_history("history.txt");
 
     let mut ctx = Context::new();
-    let program_parser = ProgramParser::new();
-    let expr_parser = ExprParser::new();
 
     loop {
         match editor.readline(">> ") {
             Ok(line) => {
                 editor.add_history_entry(&line);
 
-                let ret = match expr_parser.parse(Lexer::new(&line)) {
+                let ret = match parser::parse_expr(&line) {
                     Ok(expr) => expr.eval(&mut ctx),
-                    Err(_) => match program_parser.parse(Lexer::new(&line)) {
+                    Err(_) => match parser::parse_program(&line) {
                         Ok(ast) => ast.eval(&mut ctx),
                         Err(e) => Err(format!("{}", e)),
                     },

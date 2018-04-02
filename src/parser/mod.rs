@@ -2,7 +2,25 @@
 #[allow(clippy)]
 mod grammar;
 
-pub use self::grammar::{ExprParser, ProgramParser};
+use lalrpop_util::ParseError as LParseError;
+use ast::{Expr, Stmt};
+use lexer::{Lexer, LexicalError, Location};
+use lexer::tokens::Token;
+use self::grammar::{ExprParser, ProgramParser};
+
+pub type ParseError<'input> = LParseError<Location, Token<'input>, LexicalError>;
+
+pub fn parse_program(input: &str) -> Result<Vec<Stmt>, ParseError> {
+    let lexer = Lexer::new(input);
+    let parser = ProgramParser::new();
+    parser.parse(lexer)
+}
+
+pub fn parse_expr(input: &str) -> Result<Expr, ParseError> {
+    let lexer = Lexer::new(input);
+    let parser = ExprParser::new();
+    parser.parse(lexer)
+}
 
 #[cfg(test)]
 mod test {
@@ -10,13 +28,13 @@ mod test {
     use ast::{Expr, Operator, Stmt};
     use lexer::Lexer;
 
-    fn parse_stmt(input: &str, expected: Vec<Stmt>) {
+    fn stmt(input: &str, expected: Vec<Stmt>) {
         let lexer = Lexer::new(input);
         let parser = ProgramParser::new();
         assert_eq!(expected, parser.parse(lexer).unwrap());
     }
 
-    fn parse_expr(input: &str, expected: Expr) {
+    fn expr(input: &str, expected: Expr) {
         let lexer = Lexer::new(input);
         let parser = ExprParser::new();
         assert_eq!(expected, parser.parse(lexer).unwrap());
@@ -24,29 +42,29 @@ mod test {
 
     #[test]
     fn literals() {
-        parse_expr("nil", Expr::Nil);
-        parse_expr("true", Expr::BooleanLiteral(true));
-        parse_expr("false", Expr::BooleanLiteral(false));
-        parse_expr("123", Expr::NumberLiteral(123.0));
-        parse_expr("123.45", Expr::NumberLiteral(123.45));
-        parse_expr("\"string\"", Expr::StringLiteral("string".to_string()));
+        expr("nil", Expr::Nil);
+        expr("true", Expr::BooleanLiteral(true));
+        expr("false", Expr::BooleanLiteral(false));
+        expr("123", Expr::NumberLiteral(123.0));
+        expr("123.45", Expr::NumberLiteral(123.45));
+        expr("\"string\"", Expr::StringLiteral("string".to_string()));
     }
 
     #[test]
     fn identifiers() {
-        parse_expr("id", Expr::Identifier("id".to_string()));
-        parse_expr("_id", Expr::Identifier("_id".to_string()));
-        parse_expr("id123", Expr::Identifier("id123".to_string()));
+        expr("id", Expr::Identifier("id".to_string()));
+        expr("_id", Expr::Identifier("_id".to_string()));
+        expr("id123", Expr::Identifier("id123".to_string()));
     }
 
     #[test]
     fn assignment() {
-        parse_expr(
+        expr(
             "x = 10",
             Expr::Assign("x".to_string(), Box::new(Expr::NumberLiteral(10.0))),
         );
 
-        parse_expr(
+        expr(
             "x = y = 10",
             Expr::Assign(
                 "x".to_string(),
@@ -60,12 +78,12 @@ mod test {
 
     #[test]
     fn logic() {
-        parse_expr(
+        expr(
             "nil && nil",
             Expr::BinaryOp(Operator::And, Box::new(Expr::Nil), Box::new(Expr::Nil)),
         );
 
-        parse_expr(
+        expr(
             "nil || nil",
             Expr::BinaryOp(Operator::Or, Box::new(Expr::Nil), Box::new(Expr::Nil)),
         );
@@ -73,12 +91,12 @@ mod test {
 
     #[test]
     fn equality() {
-        parse_expr(
+        expr(
             "nil == nil",
             Expr::BinaryOp(Operator::Equals, Box::new(Expr::Nil), Box::new(Expr::Nil)),
         );
 
-        parse_expr(
+        expr(
             "nil != nil",
             Expr::BinaryOp(
                 Operator::NotEquals,
@@ -90,7 +108,7 @@ mod test {
 
     #[test]
     fn comparison() {
-        parse_expr(
+        expr(
             "10 > 5",
             Expr::BinaryOp(
                 Operator::GreaterThan,
@@ -99,7 +117,7 @@ mod test {
             ),
         );
 
-        parse_expr(
+        expr(
             "10 >= 5",
             Expr::BinaryOp(
                 Operator::GreaterEquals,
@@ -108,7 +126,7 @@ mod test {
             ),
         );
 
-        parse_expr(
+        expr(
             "10 < 5",
             Expr::BinaryOp(
                 Operator::LessThan,
@@ -117,7 +135,7 @@ mod test {
             ),
         );
 
-        parse_expr(
+        expr(
             "10 <= 5",
             Expr::BinaryOp(
                 Operator::LessEquals,
@@ -129,7 +147,7 @@ mod test {
 
     #[test]
     fn addition() {
-        parse_expr(
+        expr(
             "1 + 1",
             Expr::BinaryOp(
                 Operator::Add,
@@ -141,7 +159,7 @@ mod test {
 
     #[test]
     fn subtraction() {
-        parse_expr(
+        expr(
             "1 - 1",
             Expr::BinaryOp(
                 Operator::Subtract,
@@ -153,7 +171,7 @@ mod test {
 
     #[test]
     fn multiplication() {
-        parse_expr(
+        expr(
             "1 * 1",
             Expr::BinaryOp(
                 Operator::Multiply,
@@ -165,7 +183,7 @@ mod test {
 
     #[test]
     fn division() {
-        parse_expr(
+        expr(
             "1 / 1",
             Expr::BinaryOp(
                 Operator::Divide,
@@ -177,12 +195,12 @@ mod test {
 
     #[test]
     fn unary() {
-        parse_expr(
+        expr(
             "!true",
             Expr::UnaryOp(Operator::Not, Box::new(Expr::BooleanLiteral(true))),
         );
 
-        parse_expr(
+        expr(
             "-true",
             Expr::UnaryOp(Operator::UnaryMinus, Box::new(Expr::BooleanLiteral(true))),
         );
@@ -191,7 +209,7 @@ mod test {
     #[test]
     fn precedence() {
         // TODO: Might be worth adding test cases for the other ops
-        parse_expr(
+        expr(
             "x = -1 * 2 + 3 > 4 != 5",
             Expr::Assign(
                 "x".to_string(),
@@ -218,7 +236,7 @@ mod test {
             ),
         );
 
-        parse_expr(
+        expr(
             "nil || nil && nil",
             Expr::BinaryOp(
                 Operator::Or,
@@ -234,7 +252,7 @@ mod test {
 
     #[test]
     fn grouping() {
-        parse_expr(
+        expr(
             "2 * (1 + 2) * 3",
             Expr::BinaryOp(
                 Operator::Multiply,
@@ -254,7 +272,7 @@ mod test {
 
     #[test]
     fn declaration() {
-        parse_stmt(
+        stmt(
             "let x = 10;",
             vec![
                 Stmt::Declaration("x".to_string(), Expr::NumberLiteral(10.0)),
@@ -264,7 +282,7 @@ mod test {
 
     #[test]
     fn if_stmt() {
-        parse_stmt(
+        stmt(
             "if x > 10 { print true; }",
             vec![
                 Stmt::If(
@@ -279,7 +297,7 @@ mod test {
             ],
         );
 
-        parse_stmt(
+        stmt(
             "if x > 10 { print true; } else { print false; }",
             vec![
                 Stmt::If(
@@ -297,7 +315,7 @@ mod test {
 
     #[test]
     fn program() {
-        parse_stmt(
+        stmt(
             "\nprint x\nprint y\n\nprint z\n",
             vec![
                 Stmt::Print(Expr::Identifier("x".to_string())),
