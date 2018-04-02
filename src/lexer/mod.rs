@@ -15,7 +15,7 @@ fn is_id_continue(ch: char) -> bool {
 
 pub type Location = usize;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Fail, PartialEq)]
 pub enum LexicalError {
     #[fail(display = "Invalid character '{}' found at {}", ch, location)]
     InvalidCharacter { ch: char, location: Location },
