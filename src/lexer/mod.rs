@@ -79,7 +79,7 @@ impl<'input> Lexer<'input> {
                 self.bump();
                 Ok((pos, Token::String(&self.source[pos + 1..i]), i + 1))
             }
-            None => Err(format!("Unterminated string")),
+            None => Err("Unterminated string".to_string()),
         }
     }
 
@@ -96,7 +96,7 @@ impl<'input> Lexer<'input> {
             }
         }
 
-        let end = end.unwrap_or(self.source.len());
+        let end = end.unwrap_or_else(|| self.source.len());
 
         Ok((
             pos,
@@ -107,7 +107,7 @@ impl<'input> Lexer<'input> {
 
     fn read_identifier(&mut self, pos: usize) -> SpanResult<'input> {
         let end = self.take_while(|ch| is_id_start(ch) || is_id_continue(ch))
-            .unwrap_or(self.source.len());
+            .unwrap_or_else(|| self.source.len());
 
         match &self.source[pos..end] {
             "else" => Ok((pos, Token::Else, end)),

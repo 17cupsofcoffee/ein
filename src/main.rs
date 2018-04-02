@@ -9,7 +9,6 @@ mod interpreter;
 mod lexer;
 mod parser;
 
-use interpreter::Value;
 use std::path::PathBuf;
 use std::io::prelude::*;
 use std::fs::File;
