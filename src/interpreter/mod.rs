@@ -66,12 +66,9 @@ impl Evaluate for Vec<Stmt> {
 impl Evaluate for Stmt {
     fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
         match *self {
-            Stmt::ExprStmt(ref expr) => expr.eval(ctx),
-
             Stmt::Declaration(ref name, ref expr) => {
                 let value = expr.eval(ctx)?;
                 ctx.current_env.declare(name.clone(), value);
-                Ok(Value::Nil)
             }
 
             Stmt::If(ref condition, ref when_true, ref when_false) => {
@@ -82,16 +79,15 @@ impl Evaluate for Stmt {
                 } else {
                     when_false.eval(ctx)?;
                 }
-
-                Ok(Value::Nil)
             }
 
             Stmt::Print(ref expr) => {
                 let value = expr.eval(ctx)?;
                 println!("{}", value);
-                Ok(Value::Nil)
             }
-        }
+        };
+
+        Ok(Value::Nil)
     }
 }
 

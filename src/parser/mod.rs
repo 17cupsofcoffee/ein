@@ -298,11 +298,11 @@ mod test {
     #[test]
     fn program() {
         parse_stmt(
-            "\nx;\ny;\n\nz;\n",
+            "\nprint x\nprint y\n\nprint z\n",
             vec![
-                Stmt::ExprStmt(Expr::Identifier("x".to_string())),
-                Stmt::ExprStmt(Expr::Identifier("y".to_string())),
-                Stmt::ExprStmt(Expr::Identifier("z".to_string())),
+                Stmt::Print(Expr::Identifier("x".to_string())),
+                Stmt::Print(Expr::Identifier("y".to_string())),
+                Stmt::Print(Expr::Identifier("z".to_string())),
             ],
         );
     }

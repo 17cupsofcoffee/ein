@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/17cupsofcoffee/ein.svg?branch=master)](https://travis-ci.org/17cupsofcoffee/ein)
 
-Ein is a simple, dynamically-typed programming language, inspired by Rust (in which the interpreter is written), Ruby and Wren.
+Ein is a simple, dynamically-typed programming language, inspired by Rust (in which the interpreter is written), Lua and Wren.
 
 ## Status
 Extremely, extremely work-in-progress -
@@ -11,12 +11,12 @@ I'm developing this project following the exercises in Bob Nystrom's wonderful [
 ## Example
 ```rust
 fn sayHello(name) {
-    return "Hello, " + name + "!";
+    return "Hello, " + name + "!"
 }
 
-let greeting = sayHello("Ein");
+let greeting = sayHello("Ein")
 
-print greeting;
+print greeting
 ```
 
 The above syntax is subject to change - I'll try to keep it in sync with the latest version of the code!

@@ -36,7 +36,6 @@ pub enum Expr {
 
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
-    ExprStmt(Expr),
     Declaration(String, Expr),
     If(Expr, Vec<Stmt>, Vec<Stmt>),
     // TODO: Replace this with a function

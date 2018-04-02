@@ -7,13 +7,12 @@ pub Program: Vec<Stmt> = StmtList;
 
 Block: Vec<Stmt> = "{" <StmtList> "}";
 
-StmtList: Vec<Stmt> = Stmt*;
+StmtList: Vec<Stmt> = (<Stmt> ";"?)*;
 
 Stmt: Stmt = {
     If,
-    "print" <Expr> ";" => Stmt::Print(<>),
-    "let" <id: "identifier"> "=" <e: Expr> ";" => Stmt::Declaration(id.to_string(), e),
-    <Expr> ";" => Stmt::ExprStmt(<>),
+    "print" <Expr> => Stmt::Print(<>),
+    "let" <id: "identifier"> "=" <e: Expr> => Stmt::Declaration(id.to_string(), e),
 };
 
 If: Stmt = {

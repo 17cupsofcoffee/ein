@@ -16,7 +16,7 @@ use std::fs::File;
 use structopt::StructOpt;
 use rustyline::Editor;
 use lexer::Lexer;
-use parser::ProgramParser;
+use parser::{ExprParser, ProgramParser};
 use interpreter::{Context, Evaluate};
 
 #[derive(StructOpt, Debug)]
@@ -34,16 +34,6 @@ fn main() {
     }
 }
 
-fn run(source: &str, ctx: &mut Context) -> Result<Value, String> {
-    let lexer = Lexer::new(source);
-    let parser = ProgramParser::new();
-
-    parser
-        .parse(lexer)
-        .map_err(|e| format!("{:?}", e))?
-        .eval(ctx)
-}
-
 fn run_file(path: &PathBuf) {
     // TODO: Better error handling
     let mut file = File::open(path).expect("not found");
@@ -51,9 +41,15 @@ fn run_file(path: &PathBuf) {
     file.read_to_string(&mut buffer)
         .expect("couldn't read file");
 
-    let mut context = Context::new();
+    let lexer = Lexer::new(&buffer);
+    let parser = ProgramParser::new();
 
-    if let Err(e) = run(&buffer, &mut context) {
+    let ret = parser
+        .parse(lexer)
+        .map_err(|e| format!("{:?}", e))
+        .map(|ast| ast.eval(&mut Context::new()));
+
+    if let Err(e) = ret {
         eprintln!("Error: {}", e);
     }
 }
@@ -66,13 +62,24 @@ fn repl() {
     let mut editor = Editor::<()>::new();
     let _ = editor.load_history("history.txt");
 
-    let mut context = Context::new();
+    let mut ctx = Context::new();
+    let program_parser = ProgramParser::new();
+    let expr_parser = ExprParser::new();
 
     loop {
         match editor.readline(">> ") {
             Ok(line) => {
                 editor.add_history_entry(&line);
-                match run(&line, &mut context) {
+
+                let ret = match expr_parser.parse(Lexer::new(&line)) {
+                    Ok(expr) => expr.eval(&mut ctx),
+                    Err(_) => match program_parser.parse(Lexer::new(&line)) {
+                        Ok(ast) => ast.eval(&mut ctx),
+                        Err(e) => Err(format!("{:?}", e)),
+                    },
+                };
+
+                match ret {
                     Ok(value) => println!("{}\n", value),
                     Err(e) => eprintln!("Error: {}\n", e),
                 }
