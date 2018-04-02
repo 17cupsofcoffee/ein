@@ -3,6 +3,8 @@ extern crate rustyline;
 extern crate structopt;
 extern crate fnv;
 extern crate lalrpop_util;
+#[macro_use]
+extern crate failure;
 
 mod ast;
 mod interpreter;
@@ -45,7 +47,7 @@ fn run_file(path: &PathBuf) {
 
     let ret = parser
         .parse(lexer)
-        .map_err(|e| format!("{:?}", e))
+        .map_err(|e| format!("{}", e))
         .map(|ast| ast.eval(&mut Context::new()));
 
     if let Err(e) = ret {
@@ -74,7 +76,7 @@ fn repl() {
                     Ok(expr) => expr.eval(&mut ctx),
                     Err(_) => match program_parser.parse(Lexer::new(&line)) {
                         Ok(ast) => ast.eval(&mut ctx),
-                        Err(e) => Err(format!("{:?}", e)),
+                        Err(e) => Err(format!("{}", e)),
                     },
                 };
 

@@ -8,6 +8,7 @@ structopt = "0.2.5"
 rustyline = "1.0.0"
 lalrpop-util = "0.15.0"
 fnv = "1.0.3"
+failure = "0.1.1"
 
 [build-dependencies]
 lalrpop = "0.15.0"

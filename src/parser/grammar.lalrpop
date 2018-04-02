@@ -1,4 +1,5 @@
 use ast::{Expr, Stmt, Operator};
+use lexer::LexicalError;
 use lexer::tokens::Token;
 
 grammar<'input>;
@@ -85,7 +86,7 @@ Literal: Expr = {
 
 extern {
     type Location = usize;
-    type Error = String;
+    type Error = LexicalError;
 
     enum Token<'input> {
         // Sigils

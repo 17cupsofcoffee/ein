@@ -13,7 +13,18 @@ fn is_id_continue(ch: char) -> bool {
     ch == '_' || ch.is_ascii_digit()
 }
 
-pub type SpanResult<'input> = Result<(usize, Token<'input>, usize), String>;
+pub type Location = usize;
+
+#[derive(Debug, Fail)]
+pub enum LexicalError {
+    #[fail(display = "Invalid character '{}' found at {}", ch, location)]
+    InvalidCharacter { ch: char, location: Location },
+
+    #[fail(display = "String starting at {} was not terminated", location)]
+    UnterminatedString { location: Location },
+}
+
+pub type SpanResult<'input> = Result<(Location, Token<'input>, Location), LexicalError>;
 
 pub struct Lexer<'input> {
     source: &'input str,
@@ -79,7 +90,7 @@ impl<'input> Lexer<'input> {
                 self.bump();
                 Ok((pos, Token::String(&self.source[pos + 1..i]), i + 1))
             }
-            None => Err("Unterminated string".to_string()),
+            None => Err(LexicalError::UnterminatedString { location: pos }),
         }
     }
 
@@ -198,7 +209,7 @@ impl<'input> Iterator for Lexer<'input> {
                         self.bump();
                         Some(Ok((i, Token::AmpAmp, i + 2)))
                     } else {
-                        Some(Err(format!("Unexpected token: {}", ch)))
+                        Some(Err(LexicalError::InvalidCharacter { ch, location: i }))
                     }
                 }
 
@@ -207,7 +218,7 @@ impl<'input> Iterator for Lexer<'input> {
                         self.bump();
                         Some(Ok((i, Token::PipePipe, i + 2)))
                     } else {
-                        Some(Err(format!("Unexpected token: {}", ch)))
+                        Some(Err(LexicalError::InvalidCharacter { ch, location: i }))
                     }
                 }
 
@@ -215,7 +226,7 @@ impl<'input> Iterator for Lexer<'input> {
                 ch if is_id_start(ch) => Some(self.read_identifier(i)),
                 ch if ch.is_ascii_digit() => Some(self.read_number(i)),
 
-                ch => Some(Err(format!("Unexpected token: {}", ch))),
+                ch => Some(Err(LexicalError::InvalidCharacter { ch, location: i })),
             }
         } else {
             None
