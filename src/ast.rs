@@ -1,6 +1,5 @@
 #[derive(Debug, PartialEq)]
-pub enum Operator {
-    // Binary
+pub enum BinaryOp {
     And,
     Or,
     Equals,
@@ -13,8 +12,10 @@ pub enum Operator {
     Subtract,
     Multiply,
     Divide,
+}
 
-    // Unary
+#[derive(Debug, PartialEq)]
+pub enum UnaryOp {
     Not,
     UnaryMinus,
 }
@@ -31,8 +32,8 @@ pub enum Expr {
     Assign(String, Box<Expr>),
     Function(Vec<String>, Vec<Stmt>),
 
-    UnaryOp(Operator, Box<Expr>),
-    BinaryOp(Operator, Box<Expr>, Box<Expr>),
+    UnaryOp(UnaryOp, Box<Expr>),
+    BinaryOp(BinaryOp, Box<Expr>, Box<Expr>),
 }
 
 #[derive(Debug, PartialEq)]

@@ -25,7 +25,7 @@ pub fn parse_expr(input: &str) -> Result<Expr, ParseError> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use ast::{Expr, Operator, Stmt};
+    use ast::{BinaryOp, Expr, Stmt, UnaryOp};
     use lexer::Lexer;
 
     fn stmt(input: &str, expected: Vec<Stmt>) {
@@ -80,12 +80,12 @@ mod test {
     fn logic() {
         expr(
             "nil && nil",
-            Expr::BinaryOp(Operator::And, Box::new(Expr::Nil), Box::new(Expr::Nil)),
+            Expr::BinaryOp(BinaryOp::And, Box::new(Expr::Nil), Box::new(Expr::Nil)),
         );
 
         expr(
             "nil || nil",
-            Expr::BinaryOp(Operator::Or, Box::new(Expr::Nil), Box::new(Expr::Nil)),
+            Expr::BinaryOp(BinaryOp::Or, Box::new(Expr::Nil), Box::new(Expr::Nil)),
         );
     }
 
@@ -93,13 +93,13 @@ mod test {
     fn equality() {
         expr(
             "nil == nil",
-            Expr::BinaryOp(Operator::Equals, Box::new(Expr::Nil), Box::new(Expr::Nil)),
+            Expr::BinaryOp(BinaryOp::Equals, Box::new(Expr::Nil), Box::new(Expr::Nil)),
         );
 
         expr(
             "nil != nil",
             Expr::BinaryOp(
-                Operator::NotEquals,
+                BinaryOp::NotEquals,
                 Box::new(Expr::Nil),
                 Box::new(Expr::Nil),
             ),
@@ -111,7 +111,7 @@ mod test {
         expr(
             "10 > 5",
             Expr::BinaryOp(
-                Operator::GreaterThan,
+                BinaryOp::GreaterThan,
                 Box::new(Expr::NumberLiteral(10.0)),
                 Box::new(Expr::NumberLiteral(5.0)),
             ),
@@ -120,7 +120,7 @@ mod test {
         expr(
             "10 >= 5",
             Expr::BinaryOp(
-                Operator::GreaterEquals,
+                BinaryOp::GreaterEquals,
                 Box::new(Expr::NumberLiteral(10.0)),
                 Box::new(Expr::NumberLiteral(5.0)),
             ),
@@ -129,7 +129,7 @@ mod test {
         expr(
             "10 < 5",
             Expr::BinaryOp(
-                Operator::LessThan,
+                BinaryOp::LessThan,
                 Box::new(Expr::NumberLiteral(10.0)),
                 Box::new(Expr::NumberLiteral(5.0)),
             ),
@@ -138,7 +138,7 @@ mod test {
         expr(
             "10 <= 5",
             Expr::BinaryOp(
-                Operator::LessEquals,
+                BinaryOp::LessEquals,
                 Box::new(Expr::NumberLiteral(10.0)),
                 Box::new(Expr::NumberLiteral(5.0)),
             ),
@@ -150,7 +150,7 @@ mod test {
         expr(
             "1 + 1",
             Expr::BinaryOp(
-                Operator::Add,
+                BinaryOp::Add,
                 Box::new(Expr::NumberLiteral(1.0)),
                 Box::new(Expr::NumberLiteral(1.0)),
             ),
@@ -162,7 +162,7 @@ mod test {
         expr(
             "1 - 1",
             Expr::BinaryOp(
-                Operator::Subtract,
+                BinaryOp::Subtract,
                 Box::new(Expr::NumberLiteral(1.0)),
                 Box::new(Expr::NumberLiteral(1.0)),
             ),
@@ -174,7 +174,7 @@ mod test {
         expr(
             "1 * 1",
             Expr::BinaryOp(
-                Operator::Multiply,
+                BinaryOp::Multiply,
                 Box::new(Expr::NumberLiteral(1.0)),
                 Box::new(Expr::NumberLiteral(1.0)),
             ),
@@ -186,7 +186,7 @@ mod test {
         expr(
             "1 / 1",
             Expr::BinaryOp(
-                Operator::Divide,
+                BinaryOp::Divide,
                 Box::new(Expr::NumberLiteral(1.0)),
                 Box::new(Expr::NumberLiteral(1.0)),
             ),
@@ -197,12 +197,12 @@ mod test {
     fn unary() {
         expr(
             "!true",
-            Expr::UnaryOp(Operator::Not, Box::new(Expr::BooleanLiteral(true))),
+            Expr::UnaryOp(UnaryOp::Not, Box::new(Expr::BooleanLiteral(true))),
         );
 
         expr(
             "-true",
-            Expr::UnaryOp(Operator::UnaryMinus, Box::new(Expr::BooleanLiteral(true))),
+            Expr::UnaryOp(UnaryOp::UnaryMinus, Box::new(Expr::BooleanLiteral(true))),
         );
     }
 
@@ -214,15 +214,15 @@ mod test {
             Expr::Assign(
                 "x".to_string(),
                 Box::new(Expr::BinaryOp(
-                    Operator::NotEquals,
+                    BinaryOp::NotEquals,
                     Box::new(Expr::BinaryOp(
-                        Operator::GreaterThan,
+                        BinaryOp::GreaterThan,
                         Box::new(Expr::BinaryOp(
-                            Operator::Add,
+                            BinaryOp::Add,
                             Box::new(Expr::BinaryOp(
-                                Operator::Multiply,
+                                BinaryOp::Multiply,
                                 Box::new(Expr::UnaryOp(
-                                    Operator::UnaryMinus,
+                                    UnaryOp::UnaryMinus,
                                     Box::new(Expr::NumberLiteral(1.0)),
                                 )),
                                 Box::new(Expr::NumberLiteral(2.0)),
@@ -239,10 +239,10 @@ mod test {
         expr(
             "nil || nil && nil",
             Expr::BinaryOp(
-                Operator::Or,
+                BinaryOp::Or,
                 Box::new(Expr::Nil),
                 Box::new(Expr::BinaryOp(
-                    Operator::And,
+                    BinaryOp::And,
                     Box::new(Expr::Nil),
                     Box::new(Expr::Nil),
                 )),
@@ -255,12 +255,12 @@ mod test {
         expr(
             "2 * (1 + 2) * 3",
             Expr::BinaryOp(
-                Operator::Multiply,
+                BinaryOp::Multiply,
                 Box::new(Expr::BinaryOp(
-                    Operator::Multiply,
+                    BinaryOp::Multiply,
                     Box::new(Expr::NumberLiteral(2.0)),
                     Box::new(Expr::BinaryOp(
-                        Operator::Add,
+                        BinaryOp::Add,
                         Box::new(Expr::NumberLiteral(1.0)),
                         Box::new(Expr::NumberLiteral(2.0)),
                     )),
@@ -291,7 +291,7 @@ mod test {
                         vec!["a".to_string(), "b".to_string()],
                         vec![
                             Stmt::Print(Expr::BinaryOp(
-                                Operator::Add,
+                                BinaryOp::Add,
                                 Box::new(Expr::Identifier("a".to_string())),
                                 Box::new(Expr::Identifier("b".to_string())),
                             )),
@@ -309,7 +309,7 @@ mod test {
             vec![
                 Stmt::If(
                     Expr::BinaryOp(
-                        Operator::GreaterThan,
+                        BinaryOp::GreaterThan,
                         Box::new(Expr::Identifier("x".to_string())),
                         Box::new(Expr::NumberLiteral(10.0)),
                     ),
@@ -324,7 +324,7 @@ mod test {
             vec![
                 Stmt::If(
                     Expr::BinaryOp(
-                        Operator::GreaterThan,
+                        BinaryOp::GreaterThan,
                         Box::new(Expr::Identifier("x".to_string())),
                         Box::new(Expr::NumberLiteral(10.0)),
                     ),

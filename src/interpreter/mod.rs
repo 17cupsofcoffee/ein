@@ -1,7 +1,7 @@
 mod env;
 
 use std::fmt;
-use ast::{Expr, Operator, Stmt};
+use ast::{BinaryOp, Expr, Stmt, UnaryOp};
 use self::env::Env;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -116,21 +116,19 @@ impl Evaluate for Expr {
                 let expr_val = expr.eval(ctx)?;
 
                 match *op {
-                    Operator::Not => Ok(Value::Boolean(!expr_val.is_truthy())),
+                    UnaryOp::Not => Ok(Value::Boolean(!expr_val.is_truthy())),
 
-                    Operator::UnaryMinus => match expr_val {
+                    UnaryOp::UnaryMinus => match expr_val {
                         Value::Number(val) => Ok(Value::Number(-val)),
                         other => Err(format!("{} cannot be negated", other)),
                     },
-
-                    ref other => Err(format!("{:?} is not a valid unary operator", other)),
                 }
             }
 
             Expr::BinaryOp(ref op, ref left, ref right) => {
                 match *op {
                     // Arithmatic
-                    Operator::Add => {
+                    BinaryOp::Add => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
@@ -141,7 +139,7 @@ impl Evaluate for Expr {
                         }
                     }
 
-                    Operator::Subtract => {
+                    BinaryOp::Subtract => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
@@ -151,7 +149,7 @@ impl Evaluate for Expr {
                         }
                     }
 
-                    Operator::Multiply => {
+                    BinaryOp::Multiply => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
@@ -161,7 +159,7 @@ impl Evaluate for Expr {
                         }
                     }
 
-                    Operator::Divide => {
+                    BinaryOp::Divide => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
@@ -172,21 +170,21 @@ impl Evaluate for Expr {
                     }
 
                     // Comparison
-                    Operator::Equals => {
+                    BinaryOp::Equals => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
                         Ok(Value::Boolean(left_val == right_val))
                     }
 
-                    Operator::NotEquals => {
+                    BinaryOp::NotEquals => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
                         Ok(Value::Boolean(left_val != right_val))
                     }
 
-                    Operator::GreaterThan => {
+                    BinaryOp::GreaterThan => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
@@ -196,7 +194,7 @@ impl Evaluate for Expr {
                         }
                     }
 
-                    Operator::GreaterEquals => {
+                    BinaryOp::GreaterEquals => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
@@ -206,7 +204,7 @@ impl Evaluate for Expr {
                         }
                     }
 
-                    Operator::LessThan => {
+                    BinaryOp::LessThan => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
@@ -216,7 +214,7 @@ impl Evaluate for Expr {
                         }
                     }
 
-                    Operator::LessEquals => {
+                    BinaryOp::LessEquals => {
                         let left_val = left.eval(ctx)?;
                         let right_val = right.eval(ctx)?;
 
@@ -227,7 +225,7 @@ impl Evaluate for Expr {
                     }
 
                     // Logic
-                    Operator::And => {
+                    BinaryOp::And => {
                         let left_val = left.eval(ctx)?;
 
                         if left_val.is_falsey() {
@@ -237,7 +235,7 @@ impl Evaluate for Expr {
                         }
                     }
 
-                    Operator::Or => {
+                    BinaryOp::Or => {
                         let left_val = left.eval(ctx)?;
 
                         if left_val.is_truthy() {
@@ -246,8 +244,6 @@ impl Evaluate for Expr {
                             right.eval(ctx)
                         }
                     }
-
-                    ref other => Err(format!("{:?} is not a valid binary operator", other)),
                 }
             }
         }
