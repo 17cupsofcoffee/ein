@@ -110,6 +110,8 @@ impl Evaluate for Expr {
                 Ok(expr_val)
             }
 
+            Expr::Function(ref _params, ref _body) => unimplemented!(),
+
             Expr::UnaryOp(ref op, ref expr) => {
                 let expr_val = expr.eval(ctx)?;
 

@@ -4,16 +4,22 @@ use lexer::tokens::Token;
 
 grammar<'input>;
 
-pub Program: Vec<Stmt> = StmtList;
+// Programs
 
-Block: Vec<Stmt> = "{" <StmtList> "}";
+pub Program = StmtList;
 
-StmtList: Vec<Stmt> = (<Stmt> ";"?)*;
+Block = Brace<StmtList>;
+
+StmtList = (<Stmt> ";"?)*;
+
+// Statements
 
 Stmt: Stmt = {
     If,
+    Function,
     "print" <Expr> => Stmt::Print(<>),
     "let" <id: "identifier"> "=" <e: Expr> => Stmt::Declaration(id.to_string(), e),
+    
 };
 
 If: Stmt = {
@@ -21,7 +27,21 @@ If: Stmt = {
     "if" <Expr> <Block> "else" <Block> => Stmt::If(<>),
 };
 
-pub Expr: Expr = ExprAssign;
+Function: Stmt = {
+    "fn" <id: "identifier"> <p: Paren<Comma<"identifier">>> <b: Block> => {
+        Stmt::Declaration(
+            id.to_string(),
+            Expr::Function(
+                p.iter().map(|s| s.to_string()).collect(),
+                b
+            )
+        )
+    }
+};
+
+// Expressions
+
+pub Expr = ExprAssign;
 
 ExprAssign: Expr = {
     <id: "identifier"> "=" <e: ExprAssign> => Expr::Assign(id.to_string(), Box::new(e)),
@@ -70,10 +90,12 @@ ExprUnary: Expr = {
     ExprAtom,
 };
 
-ExprAtom: Expr = {
+ExprAtom = {
     Literal,
-    "(" <Expr> ")" => <>,
+    Paren<Expr>,
 };
+
+// Literals
 
 Literal: Expr = {
     "nil" => Expr::Nil,
@@ -83,6 +105,27 @@ Literal: Expr = {
     "string" => Expr::StringLiteral(<>.to_string()),
     "identifier" => Expr::Identifier(<>.to_string()),
 };
+
+// Utilities
+
+Paren<T> = "(" <T> ")";
+Brace<T> = "{" <T> "}";
+Bracket<T> = "[" <T> "]";
+
+Comma<T> = Delim<T, ",">;
+
+Delim<T, D>: Vec<T> = {
+    <h: (<T> D)*> <t: T?> => match t {
+        Some(t) => {
+            let mut h = h;
+            h.push(t);
+            h
+        }
+        None => h
+    }     
+};
+
+// Externs
 
 extern {
     type Location = usize;

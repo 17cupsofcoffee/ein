@@ -281,6 +281,28 @@ mod test {
     }
 
     #[test]
+    fn function_declaration() {
+        stmt(
+            "fn test(a, b) {\nprint a + b\n}",
+            vec![
+                Stmt::Declaration(
+                    "test".to_string(),
+                    Expr::Function(
+                        vec!["a".to_string(), "b".to_string()],
+                        vec![
+                            Stmt::Print(Expr::BinaryOp(
+                                Operator::Add,
+                                Box::new(Expr::Identifier("a".to_string())),
+                                Box::new(Expr::Identifier("b".to_string())),
+                            )),
+                        ],
+                    ),
+                ),
+            ],
+        );
+    }
+
+    #[test]
     fn if_stmt() {
         stmt(
             "if x > 10 { print true; }",

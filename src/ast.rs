@@ -29,6 +29,7 @@ pub enum Expr {
     BooleanLiteral(bool),
 
     Assign(String, Box<Expr>),
+    Function(Vec<String>, Vec<Stmt>),
 
     UnaryOp(Operator, Box<Expr>),
     BinaryOp(Operator, Box<Expr>, Box<Expr>),
