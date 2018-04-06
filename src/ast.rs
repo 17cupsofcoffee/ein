@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum BinaryOp {
     And,
     Or,
@@ -14,13 +14,13 @@ pub enum BinaryOp {
     Divide,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum UnaryOp {
     Not,
     UnaryMinus,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
     Nil,
 
@@ -36,7 +36,7 @@ pub enum Expr {
     BinaryOp(BinaryOp, Box<Expr>, Box<Expr>),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     Declaration(String, Expr),
     If(Expr, Vec<Stmt>, Vec<Stmt>),

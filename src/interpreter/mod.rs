@@ -11,6 +11,7 @@ pub enum Value {
     Number(f64),
     // TODO: Don't copy strings, intern them
     String(String),
+    Function(Vec<String>, Vec<Stmt>),
 }
 
 impl Value {
@@ -33,6 +34,7 @@ impl fmt::Display for Value {
             Value::Boolean(val) => write!(f, "{}", val),
             Value::Number(val) => write!(f, "{}", val),
             Value::String(ref val) => write!(f, "{}", val),
+            Value::Function(_, _) => write!(f, "<fn>"),
         }
     }
 }
@@ -110,7 +112,9 @@ impl Evaluate for Expr {
                 Ok(expr_val)
             }
 
-            Expr::Function(ref _params, ref _body) => unimplemented!(),
+            Expr::Function(ref params, ref body) => {
+                Ok(Value::Function(params.clone(), body.clone()))
+            }
 
             Expr::UnaryOp(ref op, ref expr) => {
                 let expr_val = expr.eval(ctx)?;
