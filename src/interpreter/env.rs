@@ -21,9 +21,9 @@ impl Env {
         Env(Rc::new(RefCell::new(inner)))
     }
 
-    pub fn child(parent: &Env) -> Env {
+    pub fn child(&self) -> Env {
         let inner = EnvInner {
-            parent: Some(parent.clone()),
+            parent: Some(self.clone()),
             values: FnvHashMap::default(),
         };
 

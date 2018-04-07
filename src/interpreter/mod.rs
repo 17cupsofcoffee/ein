@@ -40,19 +40,47 @@ impl fmt::Display for Value {
 }
 
 pub struct Context {
-    current_env: Env,
+    stack: Vec<Env>,
 }
 
 impl Context {
     pub fn new() -> Context {
         Context {
-            current_env: Env::root(),
+            stack: vec![Env::root()],
         }
+    }
+
+    pub fn current_env(&self) -> Env {
+        self.stack
+            .last()
+            .expect("The stack should never be unrooted")
+            .clone()
+    }
+
+    pub fn push_env(&mut self, env: Env) {
+        self.stack.push(env);
+    }
+
+    pub fn pop_env(&mut self) -> Env {
+        if self.stack.len() == 1 {
+            panic!("The stack should never be unrooted");
+        }
+
+        self.stack
+            .pop()
+            .expect("The stack should never be unrooted")
     }
 }
 
 pub trait Evaluate {
     fn eval(&self, ctx: &mut Context) -> Result<Value, String>;
+
+    fn eval_in_env(&self, ctx: &mut Context, env: Env) -> Result<Value, String> {
+        ctx.push_env(env);
+        let val = self.eval(ctx);
+        ctx.pop_env();
+        val
+    }
 }
 
 impl Evaluate for Vec<Stmt> {
@@ -74,7 +102,7 @@ impl Evaluate for Stmt {
 
             Stmt::Declaration(ref name, ref expr) => {
                 let value = expr.eval(ctx)?;
-                ctx.current_env.declare(name.clone(), value);
+                ctx.current_env().declare(name.clone(), value);
             }
 
             Stmt::If(ref condition, ref when_true, ref when_false) => {
@@ -105,14 +133,14 @@ impl Evaluate for Expr {
             Expr::NumberLiteral(val) => Ok(Value::Number(val)),
             Expr::StringLiteral(ref val) => Ok(Value::String(val.clone())),
 
-            Expr::Identifier(ref name) => match ctx.current_env.get(name) {
+            Expr::Identifier(ref name) => match ctx.current_env().get(name) {
                 Some(value) => Ok(value),
                 None => Ok(Value::Nil),
             },
 
             Expr::Assign(ref name, ref expr) => {
                 let expr_val = expr.eval(ctx)?;
-                ctx.current_env.assign(name.clone(), expr_val.clone())?;
+                ctx.current_env().assign(name.clone(), expr_val.clone())?;
                 Ok(expr_val)
             }
 
@@ -120,7 +148,32 @@ impl Evaluate for Expr {
                 Ok(Value::Function(params.clone(), body.clone()))
             }
 
-            Expr::Call(_, _) => unimplemented!(),
+            Expr::Call(ref target, ref args) => {
+                let target_val = target.eval(ctx)?;
+
+                match target_val {
+                    Value::Function(ref params, ref body) => {
+                        if args.len() != params.len() {
+                            return Err(format!(
+                                "Expected {} arguments, found {}",
+                                params.len(),
+                                args.len()
+                            ));
+                        }
+
+                        // TODO: Lexical scoping
+                        let mut fn_env = ctx.current_env().child();
+
+                        for (arg, name) in args.iter().zip(params) {
+                            fn_env.declare(name.clone(), arg.eval(ctx)?);
+                        }
+
+                        body.eval_in_env(ctx, fn_env)
+                    }
+
+                    other => Err(format!("{} is not a callable object", other)),
+                }
+            }
 
             Expr::UnaryOp(ref op, ref expr) => {
                 let expr_val = expr.eval(ctx)?;
