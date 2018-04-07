@@ -11,7 +11,7 @@ pub enum Value {
     Number(f64),
     // TODO: Don't copy strings, intern them
     String(String),
-    Function(Vec<String>, Vec<Stmt>),
+    Function(Vec<String>, Vec<Stmt>, Env),
 }
 
 impl Value {
@@ -34,7 +34,7 @@ impl fmt::Display for Value {
             Value::Boolean(val) => write!(f, "{}", val),
             Value::Number(val) => write!(f, "{}", val),
             Value::String(ref val) => write!(f, "{}", val),
-            Value::Function(_, _) => write!(f, "<fn>"),
+            Value::Function(_, _, _) => write!(f, "<fn>"),
         }
     }
 }
@@ -144,15 +144,17 @@ impl Evaluate for Expr {
                 Ok(expr_val)
             }
 
-            Expr::Function(ref params, ref body) => {
-                Ok(Value::Function(params.clone(), body.clone()))
-            }
+            Expr::Function(ref params, ref body) => Ok(Value::Function(
+                params.clone(),
+                body.clone(),
+                ctx.current_env(),
+            )),
 
             Expr::Call(ref target, ref args) => {
                 let target_val = target.eval(ctx)?;
 
                 match target_val {
-                    Value::Function(ref params, ref body) => {
+                    Value::Function(ref params, ref body, ref env) => {
                         if args.len() != params.len() {
                             return Err(format!(
                                 "Expected {} arguments, found {}",
@@ -161,8 +163,8 @@ impl Evaluate for Expr {
                             ));
                         }
 
-                        // TODO: Lexical scoping
-                        let mut fn_env = ctx.current_env().child();
+                        // TODO: Proper lexical scoping
+                        let mut fn_env = env.child();
 
                         for (arg, name) in args.iter().zip(params) {
                             fn_env.declare(name.clone(), arg.eval(ctx)?);

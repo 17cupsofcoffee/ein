@@ -3,12 +3,13 @@ use std::rc::Rc;
 use fnv::FnvHashMap;
 use super::Value;
 
+#[derive(Debug, PartialEq)]
 struct EnvInner {
     parent: Option<Env>,
     values: FnvHashMap<String, Value>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Env(Rc<RefCell<EnvInner>>);
 
 impl Env {
