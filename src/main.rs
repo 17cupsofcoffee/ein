@@ -1,22 +1,15 @@
 extern crate rustyline;
 #[macro_use]
 extern crate structopt;
-extern crate fnv;
-extern crate lalrpop_util;
-#[macro_use]
-extern crate failure;
-
-mod ast;
-mod interpreter;
-mod lexer;
-mod parser;
+extern crate ein;
 
 use std::path::PathBuf;
 use std::io::prelude::*;
 use std::fs::File;
 use structopt::StructOpt;
 use rustyline::Editor;
-use interpreter::{Context, Evaluate};
+use ein::parser;
+use ein::interpreter::{Context, Evaluate};
 
 #[derive(StructOpt, Debug)]
 struct Options {
