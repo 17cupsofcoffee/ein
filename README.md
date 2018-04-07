@@ -11,12 +11,12 @@ I'm developing this project following the exercises in Bob Nystrom's wonderful [
 ## Example
 ```rust
 fn sayHello(name) {
-    return "Hello, " + name + "!"
+    return "Hello, " + name + "!";
 }
 
-let greeting = sayHello("Ein")
+let greeting = sayHello("Ein");
 
-print greeting
+print greeting;
 ```
 
 The above syntax is subject to change - I'll try to keep it in sync with the latest version of the code!

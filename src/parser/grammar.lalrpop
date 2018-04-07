@@ -10,16 +10,16 @@ pub Program = StmtList;
 
 Block = Brace<StmtList>;
 
-StmtList = (<Stmt> ";"?)*;
+StmtList = Stmt*;
 
 // Statements
 
 Stmt: Stmt = {
     If,
     Function,
-    "print" <Expr> => Stmt::Print(<>),
-    "let" <id: "identifier"> "=" <e: Expr> => Stmt::Declaration(id.to_string(), e),
-    
+    "print" <Expr> ";" => Stmt::Print(<>),
+    "let" <id: "identifier"> "=" <e: Expr> ";" => Stmt::Declaration(id.to_string(), e),
+    <Expr> ";" => Stmt::ExprStmt(<>),
 };
 
 If: Stmt = {
@@ -85,9 +85,14 @@ ExprMulDiv: Expr = {
 };
 
 ExprUnary: Expr = {
-    "!" <ExprAtom> => Expr::UnaryOp(UnaryOp::Not, Box::new(<>)),
-    "-" <ExprAtom> => Expr::UnaryOp(UnaryOp::UnaryMinus, Box::new(<>)),
-    ExprAtom,
+    "!" <ExprCall> => Expr::UnaryOp(UnaryOp::Not, Box::new(<>)),
+    "-" <ExprCall> => Expr::UnaryOp(UnaryOp::UnaryMinus, Box::new(<>)),
+    ExprCall,
+};
+
+ExprCall: Expr = {
+    <f: ExprAtom> <a: Paren<Comma<Expr>>> => Expr::Call(Box::new(f), a),
+    ExprAtom
 };
 
 ExprAtom = {

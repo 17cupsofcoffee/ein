@@ -68,6 +68,10 @@ impl Evaluate for Vec<Stmt> {
 impl Evaluate for Stmt {
     fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
         match *self {
+            Stmt::ExprStmt(ref expr) => {
+                expr.eval(ctx)?;
+            }
+
             Stmt::Declaration(ref name, ref expr) => {
                 let value = expr.eval(ctx)?;
                 ctx.current_env.declare(name.clone(), value);
@@ -115,6 +119,8 @@ impl Evaluate for Expr {
             Expr::Function(ref params, ref body) => {
                 Ok(Value::Function(params.clone(), body.clone()))
             }
+
+            Expr::Call(_, _) => unimplemented!(),
 
             Expr::UnaryOp(ref op, ref expr) => {
                 let expr_val = expr.eval(ctx)?;

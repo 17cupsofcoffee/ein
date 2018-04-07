@@ -31,6 +31,7 @@ pub enum Expr {
 
     Assign(String, Box<Expr>),
     Function(Vec<String>, Vec<Stmt>),
+    Call(Box<Expr>, Vec<Expr>),
 
     UnaryOp(UnaryOp, Box<Expr>),
     BinaryOp(BinaryOp, Box<Expr>, Box<Expr>),
@@ -38,6 +39,7 @@ pub enum Expr {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
+    ExprStmt(Expr),
     Declaration(String, Expr),
     If(Expr, Vec<Stmt>, Vec<Stmt>),
     // TODO: Replace this with a function

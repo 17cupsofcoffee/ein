@@ -271,6 +271,17 @@ mod test {
     }
 
     #[test]
+    fn call() {
+        expr(
+            "id(1, x)",
+            Expr::Call(
+                Box::new(Expr::Identifier("id".to_string())),
+                vec![Expr::NumberLiteral(1.0), Expr::Identifier("x".to_string())],
+            ),
+        );
+    }
+
+    #[test]
     fn declaration() {
         stmt(
             "let x = 10;",
@@ -283,7 +294,7 @@ mod test {
     #[test]
     fn function_declaration() {
         stmt(
-            "fn test(a, b) {\nprint a + b\n}",
+            "fn test(a, b) {\nprint a + b;\n}",
             vec![
                 Stmt::Declaration(
                     "test".to_string(),
@@ -338,7 +349,7 @@ mod test {
     #[test]
     fn program() {
         stmt(
-            "\nprint x\nprint y\n\nprint z\n",
+            "\nprint x;\nprint y;\n\nprint z;\n",
             vec![
                 Stmt::Print(Expr::Identifier("x".to_string())),
                 Stmt::Print(Expr::Identifier("y".to_string())),
