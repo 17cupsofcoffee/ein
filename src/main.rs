@@ -69,7 +69,7 @@ fn repl() {
             Ok(line) => {
                 editor.add_history_entry(&line);
 
-                if let Err(_) = run_expr(&line, &mut ctx) {
+                if run_expr(&line, &mut ctx).is_err() {
                     run_program(&line, &mut ctx);
                 }
             }
