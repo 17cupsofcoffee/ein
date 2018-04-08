@@ -72,10 +72,10 @@ impl Context {
     }
 }
 
-pub trait Evaluate {
-    fn eval(&self, ctx: &mut Context) -> Result<Value, String>;
+pub trait Evaluate<T> {
+    fn eval(&self, ctx: &mut Context) -> Result<T, String>;
 
-    fn eval_in_env(&self, ctx: &mut Context, env: Env) -> Result<Value, String> {
+    fn eval_in_env(&self, ctx: &mut Context, env: Env) -> Result<T, String> {
         ctx.push_env(env);
         let val = self.eval(ctx);
         ctx.pop_env();
@@ -83,49 +83,54 @@ pub trait Evaluate {
     }
 }
 
-impl Evaluate for Vec<Stmt> {
-    fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
-        let mut ret = Value::Nil;
+impl Evaluate<Option<Value>> for Vec<Stmt> {
+    fn eval(&self, ctx: &mut Context) -> Result<Option<Value>, String> {
         for stmt in self {
-            ret = stmt.eval(ctx)?;
+            if let Some(ret) = stmt.eval(ctx)? {
+                return Ok(Some(ret));
+            }
         }
-        Ok(ret)
+
+        Ok(None)
     }
 }
 
-impl Evaluate for Stmt {
-    fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
+impl Evaluate<Option<Value>> for Stmt {
+    fn eval(&self, ctx: &mut Context) -> Result<Option<Value>, String> {
         match *self {
+            Stmt::Return(ref expr) => Ok(Some(expr.eval(ctx)?)),
+
             Stmt::ExprStmt(ref expr) => {
                 expr.eval(ctx)?;
+                Ok(None)
             }
 
             Stmt::Declaration(ref name, ref expr) => {
                 let value = expr.eval(ctx)?;
                 ctx.current_env().declare(name.clone(), value);
+                Ok(None)
             }
 
             Stmt::If(ref condition, ref when_true, ref when_false) => {
                 let cond_val = condition.eval(ctx)?;
 
                 if cond_val.is_truthy() {
-                    when_true.eval(ctx)?;
+                    when_true.eval(ctx)
                 } else {
-                    when_false.eval(ctx)?;
+                    when_false.eval(ctx)
                 }
             }
 
             Stmt::Print(ref expr) => {
                 let value = expr.eval(ctx)?;
                 println!("{}", value);
+                Ok(None)
             }
-        };
-
-        Ok(Value::Nil)
+        }
     }
 }
 
-impl Evaluate for Expr {
+impl Evaluate<Value> for Expr {
     fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
         match *self {
             Expr::Nil => Ok(Value::Nil),
@@ -170,7 +175,11 @@ impl Evaluate for Expr {
                             fn_env.declare(name.clone(), arg.eval(ctx)?);
                         }
 
-                        body.eval_in_env(ctx, fn_env)
+                        if let Some(ret) = body.eval_in_env(ctx, fn_env)? {
+                            return Ok(ret);
+                        }
+
+                        Ok(Value::Nil)
                     }
 
                     other => Err(format!("{} is not a callable object", other)),

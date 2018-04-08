@@ -8,7 +8,7 @@ use std::io::prelude::*;
 use std::fs::File;
 use structopt::StructOpt;
 use rustyline::Editor;
-use ein::parser;
+use ein::parser::{self, ParseError};
 use ein::interpreter::{Context, Evaluate};
 
 #[derive(StructOpt, Debug)]
@@ -26,6 +26,24 @@ fn main() {
     }
 }
 
+fn run_expr<'a>(input: &'a str, ctx: &mut Context) -> Result<(), ParseError<'a>> {
+    match parser::parse_expr(input)?.eval(ctx) {
+        Ok(value) => println!("{}\n", value),
+        Err(e) => eprintln!("Error: {}\n", e),
+    }
+
+    Ok(())
+}
+
+fn run_program(input: &str, ctx: &mut Context) {
+    match parser::parse_program(input) {
+        Ok(ast) => if let Err(e) = ast.eval(ctx) {
+            eprintln!("Error: {}\n", e);
+        },
+        Err(e) => eprintln!("Error: {}\n", e),
+    }
+}
+
 fn run_file(path: &PathBuf) {
     // TODO: Better error handling
     let mut file = File::open(path).expect("not found");
@@ -33,13 +51,7 @@ fn run_file(path: &PathBuf) {
     file.read_to_string(&mut buffer)
         .expect("couldn't read file");
 
-    let ret = parser::parse_program(&buffer)
-        .map_err(|e| format!("{}", e))
-        .map(|ast| ast.eval(&mut Context::new()));
-
-    if let Err(e) = ret {
-        eprintln!("Error: {}", e);
-    }
+    run_program(&buffer, &mut Context::new())
 }
 
 fn repl() {
@@ -57,17 +69,8 @@ fn repl() {
             Ok(line) => {
                 editor.add_history_entry(&line);
 
-                let ret = match parser::parse_expr(&line) {
-                    Ok(expr) => expr.eval(&mut ctx),
-                    Err(_) => match parser::parse_program(&line) {
-                        Ok(ast) => ast.eval(&mut ctx),
-                        Err(e) => Err(format!("{}", e)),
-                    },
-                };
-
-                match ret {
-                    Ok(value) => println!("{}\n", value),
-                    Err(e) => eprintln!("Error: {}\n", e),
+                if let Err(_) = run_expr(&line, &mut ctx) {
+                    run_program(&line, &mut ctx);
                 }
             }
             Err(err) => {

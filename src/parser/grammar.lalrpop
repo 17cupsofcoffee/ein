@@ -17,6 +17,7 @@ StmtList = Stmt*;
 Stmt: Stmt = {
     If,
     Function,
+    "return" <Expr> ";" => Stmt::Return(<>),
     "print" <Expr> ";" => Stmt::Print(<>),
     "let" <id: "identifier"> "=" <e: Expr> ";" => Stmt::Declaration(id.to_string(), e),
     <Expr> ";" => Stmt::ExprStmt(<>),

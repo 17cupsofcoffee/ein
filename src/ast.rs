@@ -39,6 +39,7 @@ pub enum Expr {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
+    Return(Expr),
     ExprStmt(Expr),
     Declaration(String, Expr),
     If(Expr, Vec<Stmt>, Vec<Stmt>),
