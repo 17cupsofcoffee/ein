@@ -369,6 +369,19 @@ mod test {
     }
 
     #[test]
+    fn while_stmt() {
+        stmt(
+            "while true { print 123; }",
+            vec![
+                Stmt::While(
+                    Expr::BooleanLiteral(true),
+                    vec![Stmt::Print(Expr::NumberLiteral(123.0))],
+                ),
+            ],
+        )
+    }
+
+    #[test]
     fn program() {
         stmt(
             "\nprint x;\nprint y;\n\nprint z;\n",

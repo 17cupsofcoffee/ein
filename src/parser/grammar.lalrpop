@@ -20,6 +20,7 @@ Stmt: Stmt = {
     "return" <Expr> ";" => Stmt::Return(<>),
     "print" <Expr> ";" => Stmt::Print(<>),
     "let" <id: "identifier"> "=" <e: Expr> ";" => Stmt::Declaration(id.to_string(), e),
+    "while" <Expr> <Block> => Stmt::While(<>),
     <Expr> ";" => Stmt::ExprStmt(<>),
 };
 

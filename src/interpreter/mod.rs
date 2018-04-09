@@ -121,6 +121,15 @@ impl Evaluate<Option<Value>> for Stmt {
                 }
             }
 
+            Stmt::While(ref condition, ref body) => {
+                while condition.eval(ctx)?.is_truthy() {
+                    if let Some(ret) = body.eval(ctx)? {
+                        return Ok(Some(ret));
+                    }
+                }
+                Ok(None)
+            }
+
             Stmt::Print(ref expr) => {
                 let value = expr.eval(ctx)?;
                 println!("{}", value);
