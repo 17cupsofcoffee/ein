@@ -1,7 +1,13 @@
+use super::Value;
+use fnv::FnvHashMap;
 use std::cell::RefCell;
 use std::rc::Rc;
-use fnv::FnvHashMap;
-use super::Value;
+
+// TODO: This implementation of environments causes reference cycles (and in turn, memory leaks).
+// To fix this, I'll need to either make the `parent` field use weak pointers or switch to a
+// different structure (e.g. referring to environments by an id/index).
+//
+// See: https://doc.rust-lang.org/book/second-edition/ch15-06-reference-cycles.html
 
 #[derive(Debug, PartialEq)]
 struct EnvInner {
