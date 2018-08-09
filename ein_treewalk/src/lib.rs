@@ -1,8 +1,11 @@
+extern crate ein_syntax;
+extern crate fnv;
+
 mod env;
 
-use std::fmt;
-use ast::{BinaryOp, Expr, Stmt, UnaryOp};
 use self::env::Env;
+use ein_syntax::ast::{BinaryOp, Expr, Stmt, UnaryOp};
+use std::fmt;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {

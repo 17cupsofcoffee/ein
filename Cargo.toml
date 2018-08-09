@@ -4,11 +4,11 @@ version = "0.1.0"
 authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
 
 [dependencies]
+ein_syntax = { path = "ein_syntax" }
+ein_treewalk = { path = "ein_treewalk" }
+
 structopt = "0.2.5"
 rustyline = "1.0.0"
-lalrpop-util = "0.15.0"
-fnv = "1.0.3"
-failure = "0.1.1"
 
-[build-dependencies]
-lalrpop = "0.15.0"
+[workspace]
+members = ["ein_syntax", "ein_treewalk"]

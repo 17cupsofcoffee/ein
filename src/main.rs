@@ -1,15 +1,16 @@
 extern crate rustyline;
 #[macro_use]
 extern crate structopt;
-extern crate ein;
+extern crate ein_syntax;
+extern crate ein_treewalk;
 
-use std::path::PathBuf;
-use std::io::prelude::*;
-use std::fs::File;
-use structopt::StructOpt;
+use ein_syntax::parser::{self, ParseError};
+use ein_treewalk::{Context, Evaluate};
 use rustyline::Editor;
-use ein::parser::{self, ParseError};
-use ein::interpreter::{Context, Evaluate};
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::PathBuf;
+use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 struct Options {

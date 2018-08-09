@@ -1,0 +1,11 @@
+[package]
+name = "ein_syntax"
+version = "0.1.0"
+authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
+
+[dependencies]
+lalrpop-util = "0.15.0"
+failure = "0.1.1"
+
+[build-dependencies]
+lalrpop = "0.15.0"

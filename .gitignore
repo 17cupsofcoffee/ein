@@ -1,5 +1,6 @@
-
-/target/
-**/*.rs.bk
+target
 history.txt
-src/parser/grammar.rs
+ein_syntax/src/parser/grammar.rs
+
+*.bk
+*.rs.fmt

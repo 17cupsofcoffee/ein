@@ -1,0 +1,9 @@
+[package]
+name = "ein_treewalk"
+version = "0.1.0"
+authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
+
+[dependencies]
+ein_syntax = { path = "../ein_syntax" }
+
+fnv = "1.0.3"
