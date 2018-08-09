@@ -4,4 +4,4 @@ fn sayHello(name) {
 
 let greeting = sayHello("Ein");
 
-print greeting;
+print(greeting);

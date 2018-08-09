@@ -16,7 +16,7 @@ fn sayHello(name) {
 
 let greeting = sayHello("Ein");
 
-print greeting;
+print(greeting);
 ```
 
 The above syntax is subject to change - I'll try to keep it in sync with the latest version of the code!

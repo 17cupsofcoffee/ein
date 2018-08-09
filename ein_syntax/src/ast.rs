@@ -44,6 +44,4 @@ pub enum Stmt {
     Declaration(String, Expr),
     If(Expr, Vec<Stmt>, Vec<Stmt>),
     While(Expr, Vec<Stmt>),
-    // TODO: Replace this with a function
-    Print(Expr),
 }

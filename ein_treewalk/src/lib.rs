@@ -2,10 +2,12 @@ extern crate ein_syntax;
 extern crate fnv;
 
 mod env;
+mod native;
 mod value;
 
 use ein_syntax::ast::{BinaryOp, Expr, Stmt, UnaryOp};
 use env::{Env, EnvRef};
+use native::NativeFn;
 use value::Value;
 
 pub struct Context {
@@ -14,9 +16,14 @@ pub struct Context {
 
 impl Context {
     pub fn new() -> Context {
-        Context {
-            stack: vec![Env::root()],
-        }
+        let env = Env::root();
+
+        env.borrow_mut().declare(
+            "print".to_string(),
+            Value::NativeFunction(NativeFn(native::print)),
+        );
+
+        Context { stack: vec![env] }
     }
 
     pub fn current_env(&self) -> EnvRef {
@@ -100,12 +107,6 @@ impl Evaluate<Option<Value>> for Stmt {
                 }
                 Ok(None)
             }
-
-            Stmt::Print(expr) => {
-                let value = expr.eval(ctx)?;
-                println!("{}", value);
-                Ok(None)
-            }
         }
     }
 }
@@ -169,6 +170,8 @@ impl Evaluate<Value> for Expr {
 
                         Ok(Value::Nil)
                     }
+
+                    Value::NativeFunction(pointer) => pointer.0(ctx, args),
 
                     other => Err(format!("{} is not a callable object", other)),
                 }

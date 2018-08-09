@@ -1,5 +1,6 @@
 use ein_syntax::ast::Stmt;
 use env::EnvRef;
+use native::NativeFn;
 use std::fmt;
 
 #[derive(Debug, Clone)]
@@ -10,6 +11,7 @@ pub enum Value {
     // TODO: Don't copy strings, intern them
     String(String),
     Function(Vec<String>, Vec<Stmt>, EnvRef),
+    NativeFunction(NativeFn),
 }
 
 impl Value {
@@ -33,6 +35,7 @@ impl fmt::Display for Value {
             Value::Number(val) => write!(f, "{}", val),
             Value::String(val) => write!(f, "{}", val),
             Value::Function(_, _, _) => write!(f, "<fn>"),
+            Value::NativeFunction(_) => write!(f, "<native fn>"),
         }
     }
 }

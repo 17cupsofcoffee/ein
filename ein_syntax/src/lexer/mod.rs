@@ -128,7 +128,6 @@ impl<'input> Lexer<'input> {
             "for" => Ok((pos, Token::For, end)),
             "if" => Ok((pos, Token::If, end)),
             "nil" => Ok((pos, Token::Nil, end)),
-            "print" => Ok((pos, Token::Print, end)),
             "return" => Ok((pos, Token::Return, end)),
             "this" => Ok((pos, Token::This, end)),
             "true" => Ok((pos, Token::True, end)),
