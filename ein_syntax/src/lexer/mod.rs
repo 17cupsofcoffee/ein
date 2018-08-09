@@ -1,7 +1,7 @@
 pub mod tokens;
 
-use std::str::CharIndices;
 use self::tokens::Token;
+use std::str::CharIndices;
 
 #[inline]
 fn is_id_start(ch: char) -> bool {
@@ -117,7 +117,8 @@ impl<'input> Lexer<'input> {
     }
 
     fn read_identifier(&mut self, pos: usize) -> SpanResult<'input> {
-        let end = self.take_while(|ch| is_id_start(ch) || is_id_continue(ch))
+        let end = self
+            .take_while(|ch| is_id_start(ch) || is_id_continue(ch))
             .unwrap_or_else(|| self.source.len());
 
         match &self.source[pos..end] {

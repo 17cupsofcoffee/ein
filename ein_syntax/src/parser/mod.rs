@@ -1,10 +1,10 @@
 mod grammar;
 
-use lalrpop_util::ParseError as LParseError;
-use ast::{Expr, Stmt};
-use lexer::{Lexer, LexicalError, Location};
-use lexer::tokens::Token;
 use self::grammar::{ExprParser, ProgramParser};
+use ast::{Expr, Stmt};
+use lalrpop_util::ParseError as LParseError;
+use lexer::tokens::Token;
+use lexer::{Lexer, LexicalError, Location};
 
 pub type ParseError<'input> = LParseError<Location, Token<'input>, LexicalError>;
 
@@ -283,9 +283,10 @@ mod test {
     fn declaration() {
         stmt(
             "let x = 10;",
-            vec![
-                Stmt::Declaration("x".to_string(), Expr::NumberLiteral(10.0)),
-            ],
+            vec![Stmt::Declaration(
+                "x".to_string(),
+                Expr::NumberLiteral(10.0),
+            )],
         );
     }
 
@@ -293,21 +294,17 @@ mod test {
     fn function_declaration() {
         stmt(
             "fn test(a, b) {\nprint a + b;\n}",
-            vec![
-                Stmt::Declaration(
-                    "test".to_string(),
-                    Expr::Function(
-                        vec!["a".to_string(), "b".to_string()],
-                        vec![
-                            Stmt::Print(Expr::BinaryOp(
-                                BinaryOp::Add,
-                                Box::new(Expr::Identifier("a".to_string())),
-                                Box::new(Expr::Identifier("b".to_string())),
-                            )),
-                        ],
-                    ),
+            vec![Stmt::Declaration(
+                "test".to_string(),
+                Expr::Function(
+                    vec!["a".to_string(), "b".to_string()],
+                    vec![Stmt::Print(Expr::BinaryOp(
+                        BinaryOp::Add,
+                        Box::new(Expr::Identifier("a".to_string())),
+                        Box::new(Expr::Identifier("b".to_string())),
+                    ))],
                 ),
-            ],
+            )],
         );
     }
 
@@ -315,21 +312,17 @@ mod test {
     fn function_return() {
         stmt(
             "fn test(a, b) {\nreturn a + b;\n}",
-            vec![
-                Stmt::Declaration(
-                    "test".to_string(),
-                    Expr::Function(
-                        vec!["a".to_string(), "b".to_string()],
-                        vec![
-                            Stmt::Return(Expr::BinaryOp(
-                                BinaryOp::Add,
-                                Box::new(Expr::Identifier("a".to_string())),
-                                Box::new(Expr::Identifier("b".to_string())),
-                            )),
-                        ],
-                    ),
+            vec![Stmt::Declaration(
+                "test".to_string(),
+                Expr::Function(
+                    vec!["a".to_string(), "b".to_string()],
+                    vec![Stmt::Return(Expr::BinaryOp(
+                        BinaryOp::Add,
+                        Box::new(Expr::Identifier("a".to_string())),
+                        Box::new(Expr::Identifier("b".to_string())),
+                    ))],
                 ),
-            ],
+            )],
         );
     }
 
@@ -337,32 +330,28 @@ mod test {
     fn if_stmt() {
         stmt(
             "if x > 10 { print true; }",
-            vec![
-                Stmt::If(
-                    Expr::BinaryOp(
-                        BinaryOp::GreaterThan,
-                        Box::new(Expr::Identifier("x".to_string())),
-                        Box::new(Expr::NumberLiteral(10.0)),
-                    ),
-                    vec![Stmt::Print(Expr::BooleanLiteral(true))],
-                    vec![],
+            vec![Stmt::If(
+                Expr::BinaryOp(
+                    BinaryOp::GreaterThan,
+                    Box::new(Expr::Identifier("x".to_string())),
+                    Box::new(Expr::NumberLiteral(10.0)),
                 ),
-            ],
+                vec![Stmt::Print(Expr::BooleanLiteral(true))],
+                vec![],
+            )],
         );
 
         stmt(
             "if x > 10 { print true; } else { print false; }",
-            vec![
-                Stmt::If(
-                    Expr::BinaryOp(
-                        BinaryOp::GreaterThan,
-                        Box::new(Expr::Identifier("x".to_string())),
-                        Box::new(Expr::NumberLiteral(10.0)),
-                    ),
-                    vec![Stmt::Print(Expr::BooleanLiteral(true))],
-                    vec![Stmt::Print(Expr::BooleanLiteral(false))],
+            vec![Stmt::If(
+                Expr::BinaryOp(
+                    BinaryOp::GreaterThan,
+                    Box::new(Expr::Identifier("x".to_string())),
+                    Box::new(Expr::NumberLiteral(10.0)),
                 ),
-            ],
+                vec![Stmt::Print(Expr::BooleanLiteral(true))],
+                vec![Stmt::Print(Expr::BooleanLiteral(false))],
+            )],
         );
     }
 
@@ -370,12 +359,10 @@ mod test {
     fn while_stmt() {
         stmt(
             "while true { print 123; }",
-            vec![
-                Stmt::While(
-                    Expr::BooleanLiteral(true),
-                    vec![Stmt::Print(Expr::NumberLiteral(123.0))],
-                ),
-            ],
+            vec![Stmt::While(
+                Expr::BooleanLiteral(true),
+                vec![Stmt::Print(Expr::NumberLiteral(123.0))],
+            )],
         )
     }
 
