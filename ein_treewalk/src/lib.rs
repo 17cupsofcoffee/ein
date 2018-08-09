@@ -3,18 +3,18 @@ extern crate fnv;
 
 mod env;
 
-use self::env::Env;
+use self::env::{Env, EnvRef};
 use ein_syntax::ast::{BinaryOp, Expr, Stmt, UnaryOp};
 use std::fmt;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub enum Value {
     Nil,
     Boolean(bool),
     Number(f64),
     // TODO: Don't copy strings, intern them
     String(String),
-    Function(Vec<String>, Vec<Stmt>, Env),
+    Function(Vec<String>, Vec<Stmt>, EnvRef),
 }
 
 impl Value {
@@ -42,8 +42,22 @@ impl fmt::Display for Value {
     }
 }
 
+impl PartialEq for Value {
+    fn eq(&self, other: &Value) -> bool {
+        use Value::*;
+
+        match (self, other) {
+            (Nil, Nil) => true,
+            (Boolean(a), Boolean(b)) => a == b,
+            (Number(a), Number(b)) => a == b,
+            (String(a), String(b)) => a == b,
+            _ => false,
+        }
+    }
+}
+
 pub struct Context {
-    stack: Vec<Env>,
+    stack: Vec<EnvRef>,
 }
 
 impl Context {
@@ -53,18 +67,18 @@ impl Context {
         }
     }
 
-    pub fn current_env(&self) -> Env {
+    pub fn current_env(&self) -> EnvRef {
         self.stack
             .last()
             .expect("The stack should never be unrooted")
             .clone()
     }
 
-    pub fn push_env(&mut self, env: Env) {
+    pub fn push_env(&mut self, env: EnvRef) {
         self.stack.push(env);
     }
 
-    pub fn pop_env(&mut self) -> Env {
+    pub fn pop_env(&mut self) -> EnvRef {
         if self.stack.len() == 1 {
             panic!("The stack should never be unrooted");
         }
@@ -78,7 +92,7 @@ impl Context {
 pub trait Evaluate<T> {
     fn eval(&self, ctx: &mut Context) -> Result<T, String>;
 
-    fn eval_in_env(&self, ctx: &mut Context, env: Env) -> Result<T, String> {
+    fn eval_in_env(&self, ctx: &mut Context, env: EnvRef) -> Result<T, String> {
         ctx.push_env(env);
         let val = self.eval(ctx);
         ctx.pop_env();
@@ -109,8 +123,10 @@ impl Evaluate<Option<Value>> for Stmt {
             }
 
             Stmt::Declaration(ref name, ref expr) => {
+                // TODO: Re-inline this once NLL is on stable
                 let value = expr.eval(ctx)?;
-                ctx.current_env().declare(name.clone(), value);
+                let env = ctx.current_env();
+                env.borrow_mut().declare(name.clone(), value);
                 Ok(None)
             }
 
@@ -150,14 +166,22 @@ impl Evaluate<Value> for Expr {
             Expr::NumberLiteral(val) => Ok(Value::Number(val)),
             Expr::StringLiteral(ref val) => Ok(Value::String(val.clone())),
 
-            Expr::Identifier(ref name) => match ctx.current_env().get(name) {
-                Some(value) => Ok(value),
-                None => Ok(Value::Nil),
-            },
+            Expr::Identifier(ref name) => {
+                // TODO: Re-inline this once NLL is on stable
+                let env = ctx.current_env();
+                let resolved = env.borrow().get(name);
+
+                match resolved {
+                    Some(value) => Ok(value),
+                    None => Ok(Value::Nil),
+                }
+            }
 
             Expr::Assign(ref name, ref expr) => {
+                // TODO: Re-inline this once NLL is on stable
                 let expr_val = expr.eval(ctx)?;
-                ctx.current_env().assign(name.clone(), expr_val.clone())?;
+                let env = ctx.current_env();
+                env.borrow_mut().assign(name.clone(), expr_val.clone())?;
                 Ok(expr_val)
             }
 
@@ -181,10 +205,10 @@ impl Evaluate<Value> for Expr {
                         }
 
                         // TODO: Proper lexical scoping
-                        let mut fn_env = env.child();
+                        let mut fn_env = Env::child(env);
 
                         for (arg, name) in args.iter().zip(params) {
-                            fn_env.declare(name.clone(), arg.eval(ctx)?);
+                            fn_env.borrow_mut().declare(name.clone(), arg.eval(ctx)?);
                         }
 
                         if let Some(ret) = body.eval_in_env(ctx, fn_env)? {
