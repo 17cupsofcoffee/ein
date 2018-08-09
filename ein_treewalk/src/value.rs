@@ -14,7 +14,7 @@ pub enum Value {
 
 impl Value {
     pub fn is_truthy(&self) -> bool {
-        match *self {
+        match self {
             Value::Nil | Value::Boolean(false) => false,
             _ => true,
         }
@@ -27,11 +27,11 @@ impl Value {
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Value::Nil => write!(f, "nil"),
             Value::Boolean(val) => write!(f, "{}", val),
             Value::Number(val) => write!(f, "{}", val),
-            Value::String(ref val) => write!(f, "{}", val),
+            Value::String(val) => write!(f, "{}", val),
             Value::Function(_, _, _) => write!(f, "<fn>"),
         }
     }

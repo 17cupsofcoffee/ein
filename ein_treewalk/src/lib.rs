@@ -66,15 +66,15 @@ impl Evaluate<Option<Value>> for Vec<Stmt> {
 
 impl Evaluate<Option<Value>> for Stmt {
     fn eval(&self, ctx: &mut Context) -> Result<Option<Value>, String> {
-        match *self {
-            Stmt::Return(ref expr) => Ok(Some(expr.eval(ctx)?)),
+        match self {
+            Stmt::Return(expr) => Ok(Some(expr.eval(ctx)?)),
 
-            Stmt::ExprStmt(ref expr) => {
+            Stmt::ExprStmt(expr) => {
                 expr.eval(ctx)?;
                 Ok(None)
             }
 
-            Stmt::Declaration(ref name, ref expr) => {
+            Stmt::Declaration(name, expr) => {
                 // TODO: Re-inline this once NLL is on stable
                 let value = expr.eval(ctx)?;
                 let env = ctx.current_env();
@@ -82,7 +82,7 @@ impl Evaluate<Option<Value>> for Stmt {
                 Ok(None)
             }
 
-            Stmt::If(ref condition, ref when_true, ref when_false) => {
+            Stmt::If(condition, when_true, when_false) => {
                 let cond_val = condition.eval(ctx)?;
 
                 if cond_val.is_truthy() {
@@ -92,7 +92,7 @@ impl Evaluate<Option<Value>> for Stmt {
                 }
             }
 
-            Stmt::While(ref condition, ref body) => {
+            Stmt::While(condition, body) => {
                 while condition.eval(ctx)?.is_truthy() {
                     if let Some(ret) = body.eval(ctx)? {
                         return Ok(Some(ret));
@@ -101,7 +101,7 @@ impl Evaluate<Option<Value>> for Stmt {
                 Ok(None)
             }
 
-            Stmt::Print(ref expr) => {
+            Stmt::Print(expr) => {
                 let value = expr.eval(ctx)?;
                 println!("{}", value);
                 Ok(None)
@@ -112,13 +112,13 @@ impl Evaluate<Option<Value>> for Stmt {
 
 impl Evaluate<Value> for Expr {
     fn eval(&self, ctx: &mut Context) -> Result<Value, String> {
-        match *self {
+        match self {
             Expr::Nil => Ok(Value::Nil),
-            Expr::BooleanLiteral(val) => Ok(Value::Boolean(val)),
-            Expr::NumberLiteral(val) => Ok(Value::Number(val)),
-            Expr::StringLiteral(ref val) => Ok(Value::String(val.clone())),
+            Expr::BooleanLiteral(val) => Ok(Value::Boolean(*val)),
+            Expr::NumberLiteral(val) => Ok(Value::Number(*val)),
+            Expr::StringLiteral(val) => Ok(Value::String(val.clone())),
 
-            Expr::Identifier(ref name) => {
+            Expr::Identifier(name) => {
                 // TODO: Re-inline this once NLL is on stable
                 let env = ctx.current_env();
                 let resolved = env.borrow().get(name);
@@ -129,7 +129,7 @@ impl Evaluate<Value> for Expr {
                 }
             }
 
-            Expr::Assign(ref name, ref expr) => {
+            Expr::Assign(name, expr) => {
                 // TODO: Re-inline this once NLL is on stable
                 let expr_val = expr.eval(ctx)?;
                 let env = ctx.current_env();
@@ -137,17 +137,17 @@ impl Evaluate<Value> for Expr {
                 Ok(expr_val)
             }
 
-            Expr::Function(ref params, ref body) => Ok(Value::Function(
+            Expr::Function(params, body) => Ok(Value::Function(
                 params.clone(),
                 body.clone(),
                 ctx.current_env(),
             )),
 
-            Expr::Call(ref target, ref args) => {
+            Expr::Call(target, args) => {
                 let target_val = target.eval(ctx)?;
 
                 match target_val {
-                    Value::Function(ref params, ref body, ref env) => {
+                    Value::Function(params, body, env) => {
                         if args.len() != params.len() {
                             return Err(format!(
                                 "Expected {} arguments, found {}",
@@ -157,7 +157,7 @@ impl Evaluate<Value> for Expr {
                         }
 
                         // TODO: Proper lexical scoping
-                        let mut fn_env = Env::child(env);
+                        let mut fn_env = Env::child(&env);
 
                         for (arg, name) in args.iter().zip(params) {
                             fn_env.borrow_mut().declare(name.clone(), arg.eval(ctx)?);
@@ -174,10 +174,10 @@ impl Evaluate<Value> for Expr {
                 }
             }
 
-            Expr::UnaryOp(ref op, ref expr) => {
+            Expr::UnaryOp(op, expr) => {
                 let expr_val = expr.eval(ctx)?;
 
-                match *op {
+                match op {
                     UnaryOp::Not => Ok(Value::Boolean(!expr_val.is_truthy())),
 
                     UnaryOp::UnaryMinus => match expr_val {
@@ -187,8 +187,8 @@ impl Evaluate<Value> for Expr {
                 }
             }
 
-            Expr::BinaryOp(ref op, ref left, ref right) => {
-                match *op {
+            Expr::BinaryOp(op, left, right) => {
+                match op {
                     // Arithmatic
                     BinaryOp::Add => {
                         let left_val = left.eval(ctx)?;
