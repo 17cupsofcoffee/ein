@@ -1,5 +1,3 @@
-#[allow(unknown_lints)]
-#[allow(clippy)]
 mod grammar;
 
 use lalrpop_util::ParseError as LParseError;

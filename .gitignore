@@ -1,6 +1,5 @@
 target
 history.txt
-ein_syntax/src/parser/grammar.rs
 
 *.bk
 *.rs.fmt
