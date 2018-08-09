@@ -1,6 +1,7 @@
 pub mod tokens;
 
 use self::tokens::Token;
+use std::mem;
 use std::str::CharIndices;
 
 #[inline]
@@ -48,10 +49,10 @@ impl<'input> Lexer<'input> {
     }
 
     fn bump(&mut self) -> Option<(usize, char)> {
-        let next = self.lookahead;
-        self.lookahead = self.lookahead2;
-        self.lookahead2 = self.chars.next();
-        next
+        mem::replace(
+            &mut self.lookahead,
+            mem::replace(&mut self.lookahead2, self.chars.next()),
+        )
     }
 
     fn take_until<F>(&mut self, mut terminate: F) -> Option<usize>
@@ -121,20 +122,22 @@ impl<'input> Lexer<'input> {
             .take_while(|ch| is_id_start(ch) || is_id_continue(ch))
             .unwrap_or_else(|| self.source.len());
 
-        match &self.source[pos..end] {
-            "else" => Ok((pos, Token::Else, end)),
-            "false" => Ok((pos, Token::False, end)),
-            "fn" => Ok((pos, Token::Fn, end)),
-            "for" => Ok((pos, Token::For, end)),
-            "if" => Ok((pos, Token::If, end)),
-            "nil" => Ok((pos, Token::Nil, end)),
-            "return" => Ok((pos, Token::Return, end)),
-            "this" => Ok((pos, Token::This, end)),
-            "true" => Ok((pos, Token::True, end)),
-            "let" => Ok((pos, Token::Let, end)),
-            "while" => Ok((pos, Token::While, end)),
-            id => Ok((pos, Token::Identifier(id), end)),
-        }
+        let token = match &self.source[pos..end] {
+            "else" => Token::Else,
+            "false" => Token::False,
+            "fn" => Token::Fn,
+            "for" => Token::For,
+            "if" => Token::If,
+            "nil" => Token::Nil,
+            "return" => Token::Return,
+            "this" => Token::This,
+            "true" => Token::True,
+            "let" => Token::Let,
+            "while" => Token::While,
+            id => Token::Identifier(id),
+        };
+
+        Ok((pos, token, end))
     }
 }
 
