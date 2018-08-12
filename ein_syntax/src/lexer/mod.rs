@@ -354,7 +354,6 @@ mod test {
         lex("for", vec![(0, Token::For, 3)]);
         lex("if", vec![(0, Token::If, 2)]);
         lex("nil", vec![(0, Token::Nil, 3)]);
-        lex("print", vec![(0, Token::Print, 5)]);
         lex("return", vec![(0, Token::Return, 6)]);
         lex("this", vec![(0, Token::This, 4)]);
         lex("true", vec![(0, Token::True, 4)]);

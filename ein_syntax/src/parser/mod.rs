@@ -293,12 +293,12 @@ mod test {
     #[test]
     fn function_declaration() {
         stmt(
-            "fn test(a, b) {\nprint a + b;\n}",
+            "fn test(a, b) {\nreturn a + b;\n}",
             vec![Stmt::Declaration(
                 "test".to_string(),
                 Expr::Function(
                     vec!["a".to_string(), "b".to_string()],
-                    vec![Stmt::Print(Expr::BinaryOp(
+                    vec![Stmt::Return(Expr::BinaryOp(
                         BinaryOp::Add,
                         Box::new(Expr::Identifier("a".to_string())),
                         Box::new(Expr::Identifier("b".to_string())),
@@ -329,28 +329,28 @@ mod test {
     #[test]
     fn if_stmt() {
         stmt(
-            "if x > 10 { print true; }",
+            "if x > 10 { return true; }",
             vec![Stmt::If(
                 Expr::BinaryOp(
                     BinaryOp::GreaterThan,
                     Box::new(Expr::Identifier("x".to_string())),
                     Box::new(Expr::NumberLiteral(10.0)),
                 ),
-                vec![Stmt::Print(Expr::BooleanLiteral(true))],
+                vec![Stmt::Return(Expr::BooleanLiteral(true))],
                 vec![],
             )],
         );
 
         stmt(
-            "if x > 10 { print true; } else { print false; }",
+            "if x > 10 { return true; } else { return false; }",
             vec![Stmt::If(
                 Expr::BinaryOp(
                     BinaryOp::GreaterThan,
                     Box::new(Expr::Identifier("x".to_string())),
                     Box::new(Expr::NumberLiteral(10.0)),
                 ),
-                vec![Stmt::Print(Expr::BooleanLiteral(true))],
-                vec![Stmt::Print(Expr::BooleanLiteral(false))],
+                vec![Stmt::Return(Expr::BooleanLiteral(true))],
+                vec![Stmt::Return(Expr::BooleanLiteral(false))],
             )],
         );
     }
@@ -358,10 +358,10 @@ mod test {
     #[test]
     fn while_stmt() {
         stmt(
-            "while true { print 123; }",
+            "while true { return 123; }",
             vec![Stmt::While(
                 Expr::BooleanLiteral(true),
-                vec![Stmt::Print(Expr::NumberLiteral(123.0))],
+                vec![Stmt::Return(Expr::NumberLiteral(123.0))],
             )],
         )
     }
@@ -369,11 +369,11 @@ mod test {
     #[test]
     fn program() {
         stmt(
-            "\nprint x;\nprint y;\n\nprint z;\n",
+            "\nlet x = 1;\nlet y = 2;\n\nlet z = 3;\n",
             vec![
-                Stmt::Print(Expr::Identifier("x".to_string())),
-                Stmt::Print(Expr::Identifier("y".to_string())),
-                Stmt::Print(Expr::Identifier("z".to_string())),
+                Stmt::Declaration("x".to_string(), Expr::NumberLiteral(1.0)),
+                Stmt::Declaration("y".to_string(), Expr::NumberLiteral(2.0)),
+                Stmt::Declaration("z".to_string(), Expr::NumberLiteral(3.0)),
             ],
         );
     }
