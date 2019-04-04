@@ -1,10 +1,11 @@
 pub mod tokens;
 
-use self::tokens::Token;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::mem;
 use std::str::CharIndices;
+
+use self::tokens::Token;
 
 #[inline]
 fn is_id_start(ch: char) -> bool {

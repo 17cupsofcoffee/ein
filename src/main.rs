@@ -1,10 +1,12 @@
-use ein_syntax::parser::{self, ParseError};
-use ein_treewalk::{Context, Evaluate};
-use rustyline::Editor;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
+
+use rustyline::Editor;
 use structopt::StructOpt;
+
+use ein_syntax::parser::{self, ParseError};
+use ein_treewalk::{Context, Evaluate};
 
 #[derive(StructOpt, Debug)]
 struct Options {
@@ -32,9 +34,11 @@ fn run_expr<'a>(input: &'a str, ctx: &mut Context) -> Result<(), ParseError<'a>>
 
 fn run_program(input: &str, ctx: &mut Context) {
     match parser::parse_program(input) {
-        Ok(ast) => if let Err(e) = ast.eval(ctx) {
-            eprintln!("Error: {}\n", e);
-        },
+        Ok(ast) => {
+            if let Err(e) = ast.eval(ctx) {
+                eprintln!("Error: {}\n", e);
+            }
+        }
         Err(e) => eprintln!("Error: {}\n", e),
     }
 }

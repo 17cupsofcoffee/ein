@@ -1,7 +1,9 @@
+use std::fmt;
+
 use ein_syntax::ast::Stmt;
+
 use crate::env::EnvRef;
 use crate::native::NativeFn;
-use std::fmt;
 
 #[derive(Debug, Clone)]
 pub enum Value {

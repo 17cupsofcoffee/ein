@@ -1,6 +1,8 @@
-use ein_syntax::ast::Expr;
 use std::fmt;
 use std::io::{self, Write};
+
+use ein_syntax::ast::Expr;
+
 use crate::value::Value;
 use crate::Context;
 use crate::Evaluate;

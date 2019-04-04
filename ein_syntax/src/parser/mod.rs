@@ -1,10 +1,11 @@
 mod grammar;
 
-use self::grammar::{ExprParser, ProgramParser};
-use crate::ast::{Expr, Stmt};
 use lalrpop_util::ParseError as LParseError;
+
+use crate::ast::{Expr, Stmt};
 use crate::lexer::tokens::Token;
 use crate::lexer::{Lexer, LexicalError, Location};
+use grammar::{ExprParser, ProgramParser};
 
 pub type ParseError<'input> = LParseError<Location, Token<'input>, LexicalError>;
 
