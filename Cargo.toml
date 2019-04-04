@@ -7,7 +7,7 @@ authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
 ein_syntax = { path = "ein_syntax" }
 ein_treewalk = { path = "ein_treewalk" }
 
-structopt = "0.2.5"
+structopt = "0.2.15"
 rustyline = "1.0.0"
 
 [dev-dependencies]

@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
 
 [dependencies]
-lalrpop-util = "0.15.0"
-failure = "0.1.1"
+lalrpop-util = "0.16.3"
+failure = "0.1.5"
 
 [build-dependencies]
-lalrpop = "0.15.0"
+lalrpop = "0.16.3"

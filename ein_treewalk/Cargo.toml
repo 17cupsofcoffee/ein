@@ -6,4 +6,4 @@ authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
 [dependencies]
 ein_syntax = { path = "../ein_syntax" }
 
-fnv = "1.0.3"
+fnv = "1.0.6"
