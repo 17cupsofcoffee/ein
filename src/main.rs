@@ -66,7 +66,7 @@ fn repl() {
     loop {
         match editor.readline(">> ") {
             Ok(line) => {
-                editor.add_history_entry(&line);
+                editor.add_history_entry(line.as_ref());
 
                 if run_expr(&line, &mut ctx).is_err() {
                     run_program(&line, &mut ctx);
