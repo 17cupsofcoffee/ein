@@ -1,12 +1,12 @@
 use super::value::Value;
-use fnv::FnvHashMap;
+use hashbrown::HashMap;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 #[derive(Debug)]
 pub struct Env {
     parent: Weak<RefCell<Env>>,
-    values: FnvHashMap<String, Value>,
+    values: HashMap<String, Value>,
 }
 
 pub type EnvRef = Rc<RefCell<Env>>;
@@ -15,7 +15,7 @@ impl Env {
     pub fn root() -> EnvRef {
         let inner = Env {
             parent: Weak::new(),
-            values: FnvHashMap::default(),
+            values: HashMap::new(),
         };
 
         Rc::new(RefCell::new(inner))
@@ -24,7 +24,7 @@ impl Env {
     pub fn child(parent: &EnvRef) -> EnvRef {
         let inner = Env {
             parent: Rc::downgrade(parent),
-            values: FnvHashMap::default(),
+            values: HashMap::new(),
         };
 
         Rc::new(RefCell::new(inner))
