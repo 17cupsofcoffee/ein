@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 lalrpop-util = "0.16.3"
-failure = "0.1.5"
 
 [build-dependencies]
 lalrpop = "0.16.3"

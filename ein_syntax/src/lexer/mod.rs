@@ -1,9 +1,10 @@
 pub mod tokens;
 
 use self::tokens::Token;
+use std::error::Error;
+use std::fmt::{self, Display, Formatter};
 use std::mem;
 use std::str::CharIndices;
-use failure::Fail;
 
 #[inline]
 fn is_id_start(ch: char) -> bool {
@@ -17,14 +18,26 @@ fn is_id_continue(ch: char) -> bool {
 
 pub type Location = usize;
 
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum LexicalError {
-    #[fail(display = "Invalid character '{}' found at {}", ch, location)]
     InvalidCharacter { ch: char, location: Location },
-
-    #[fail(display = "String starting at {} was not terminated", location)]
     UnterminatedString { location: Location },
 }
+
+impl Display for LexicalError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            LexicalError::InvalidCharacter { ch, location } => {
+                write!(f, "Invalid character '{}' found at {}", ch, location)
+            }
+            LexicalError::UnterminatedString { location } => {
+                write!(f, "String starting at {} was not terminated", location)
+            }
+        }
+    }
+}
+
+impl Error for LexicalError {}
 
 pub type SpanResult<'input> = Result<(Location, Token<'input>, Location), LexicalError>;
 
