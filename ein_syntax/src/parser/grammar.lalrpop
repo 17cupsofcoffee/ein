@@ -1,6 +1,6 @@
-use ast::{Expr, Stmt, UnaryOp, BinaryOp};
-use lexer::LexicalError;
-use lexer::tokens::Token;
+use crate::ast::{Expr, Stmt, UnaryOp, BinaryOp};
+use crate::lexer::LexicalError;
+use crate::lexer::tokens::Token;
 
 grammar<'input>;
 
