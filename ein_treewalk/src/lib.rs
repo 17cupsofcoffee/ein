@@ -1,14 +1,11 @@
-extern crate ein_syntax;
-extern crate fnv;
-
 mod env;
 mod native;
 mod value;
 
 use ein_syntax::ast::{BinaryOp, Expr, Stmt, UnaryOp};
-use env::{Env, EnvRef};
-use native::NativeFn;
-use value::Value;
+use crate::env::{Env, EnvRef};
+use crate::native::NativeFn;
+use crate::value::Value;
 
 pub struct Context {
     stack: Vec<EnvRef>,
@@ -158,7 +155,7 @@ impl Evaluate<Value> for Expr {
                         }
 
                         // TODO: Proper lexical scoping
-                        let mut fn_env = Env::child(&env);
+                        let fn_env = Env::child(&env);
 
                         for (arg, name) in args.iter().zip(params) {
                             fn_env.borrow_mut().declare(name.clone(), arg.eval(ctx)?);

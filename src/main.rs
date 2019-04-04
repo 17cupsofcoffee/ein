@@ -1,9 +1,3 @@
-extern crate rustyline;
-#[macro_use]
-extern crate structopt;
-extern crate ein_syntax;
-extern crate ein_treewalk;
-
 use ein_syntax::parser::{self, ParseError};
 use ein_treewalk::{Context, Evaluate};
 use rustyline::Editor;

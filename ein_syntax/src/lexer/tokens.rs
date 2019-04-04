@@ -47,7 +47,7 @@ pub enum Token<'input> {
 }
 
 impl<'input> fmt::Display for Token<'input> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use self::Token::*;
 
         match *self {

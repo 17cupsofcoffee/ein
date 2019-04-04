@@ -2,6 +2,7 @@
 name = "ein_syntax"
 version = "0.1.0"
 authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 lalrpop-util = "0.16.3"

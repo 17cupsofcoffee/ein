@@ -1,20 +1,20 @@
 mod grammar;
 
 use self::grammar::{ExprParser, ProgramParser};
-use ast::{Expr, Stmt};
+use crate::ast::{Expr, Stmt};
 use lalrpop_util::ParseError as LParseError;
-use lexer::tokens::Token;
-use lexer::{Lexer, LexicalError, Location};
+use crate::lexer::tokens::Token;
+use crate::lexer::{Lexer, LexicalError, Location};
 
 pub type ParseError<'input> = LParseError<Location, Token<'input>, LexicalError>;
 
-pub fn parse_program(input: &str) -> Result<Vec<Stmt>, ParseError> {
+pub fn parse_program(input: &str) -> Result<Vec<Stmt>, ParseError<'_>> {
     let lexer = Lexer::new(input);
     let parser = ProgramParser::new();
     parser.parse(lexer)
 }
 
-pub fn parse_expr(input: &str) -> Result<Expr, ParseError> {
+pub fn parse_expr(input: &str) -> Result<Expr, ParseError<'_>> {
     let lexer = Lexer::new(input);
     let parser = ExprParser::new();
     parser.parse(lexer)
@@ -23,8 +23,8 @@ pub fn parse_expr(input: &str) -> Result<Expr, ParseError> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use ast::{BinaryOp, Expr, Stmt, UnaryOp};
-    use lexer::Lexer;
+    use crate::ast::{BinaryOp, Expr, Stmt, UnaryOp};
+    use crate::lexer::Lexer;
 
     fn stmt(input: &str, expected: Vec<Stmt>) {
         let lexer = Lexer::new(input);

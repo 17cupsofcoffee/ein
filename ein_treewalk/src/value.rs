@@ -1,6 +1,6 @@
 use ein_syntax::ast::Stmt;
-use env::EnvRef;
-use native::NativeFn;
+use crate::env::EnvRef;
+use crate::native::NativeFn;
 use std::fmt;
 
 #[derive(Debug, Clone)]
@@ -28,7 +28,7 @@ impl Value {
 }
 
 impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Value::Nil => write!(f, "nil"),
             Value::Boolean(val) => write!(f, "{}", val),
@@ -42,7 +42,7 @@ impl fmt::Display for Value {
 
 impl PartialEq for Value {
     fn eq(&self, other: &Value) -> bool {
-        use Value::*;
+        use crate::Value::*;
 
         match (self, other) {
             (Nil, Nil) => true,

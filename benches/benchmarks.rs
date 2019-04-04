@@ -1,11 +1,6 @@
 #![cfg(test)]
 
-extern crate ein_syntax;
-extern crate ein_treewalk;
-#[macro_use]
-extern crate criterion;
-
-use criterion::{black_box, Criterion};
+use criterion::{black_box, Criterion, criterion_group, criterion_main};
 use ein_syntax::parser;
 use ein_treewalk::{Context, Evaluate};
 

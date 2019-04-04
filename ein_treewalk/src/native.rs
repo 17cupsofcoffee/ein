@@ -1,15 +1,15 @@
 use ein_syntax::ast::Expr;
 use std::fmt;
 use std::io::{self, Write};
-use value::Value;
-use Context;
-use Evaluate;
+use crate::value::Value;
+use crate::Context;
+use crate::Evaluate;
 
 #[derive(Clone)]
 pub struct NativeFn(pub fn(&mut Context, &[Expr]) -> Result<Value, String>);
 
 impl fmt::Debug for NativeFn {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "<native fn>")
     }
 }

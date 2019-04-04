@@ -3,6 +3,7 @@ pub mod tokens;
 use self::tokens::Token;
 use std::mem;
 use std::str::CharIndices;
+use failure::Fail;
 
 #[inline]
 fn is_id_start(ch: char) -> bool {
@@ -241,7 +242,7 @@ impl<'input> Iterator for Lexer<'input> {
 mod test {
     use super::*;
 
-    fn lex(source: &str, expected: Vec<(usize, Token, usize)>) {
+    fn lex(source: &str, expected: Vec<(usize, Token<'_>, usize)>) {
         let mut lexer = Lexer::new(source);
 
         let mut actual_len = 0;
