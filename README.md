@@ -29,4 +29,5 @@ This project is made up of several Rust crates:
 | --- | --- |
 | `ein` | The top level crate, containing a command line interface and REPL. |
 | `ein_syntax` | Contains a hand-written lexer and [LALRPOP](https://github.com/lalrpop/lalrpop)-generated parser for the language's syntax. |
-| `ein_treewalk` | A simple tree-walking interpreter. Probably not very performant, but easy to hack on! |
+| `ein_treewalk` | A simple tree-walking interpreter. Not currently being developed. |
+| `ein_vm` | A stack-based virtual machine. Incomplete, but can run some basic expressions. |

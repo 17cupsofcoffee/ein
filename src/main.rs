@@ -8,7 +8,7 @@ use rustyline::Editor;
 use structopt::StructOpt;
 
 use ein_syntax::parser::{self, ParseError};
-use ein_treewalk::{Context, Evaluate, Value};
+use ein_vm::{Chunk, Instruction, Value, VirtualMachine};
 
 #[derive(StructOpt, Debug)]
 struct Options {
@@ -25,24 +25,26 @@ fn main() {
     }
 }
 
-fn run<'a>(input: &'a str, ctx: &mut Context) -> Result<'a, Option<Value>> {
+fn run<'a>(input: &'a str, vm: &mut VirtualMachine) -> Result<'a, Option<Value>> {
+    let mut chunk = Chunk::new();
+
     match parser::parse_expr(input) {
-        Ok(ast) => {
-            let output = ast.eval(ctx)?;
-            Ok(Some(output))
-        }
+        Ok(expr) => chunk.emit(&expr),
         Err(_) => {
             let ast = parser::parse_program(input)?;
-            ast.eval(ctx)?;
-            Ok(None)
+            chunk.emit(&ast);
         }
     }
+
+    chunk.add_instruction(Instruction::Return);
+
+    Ok(vm.run(&chunk))
 }
 
 fn run_file(path: &PathBuf) {
     match fs::read_to_string(path) {
         Ok(program) => {
-            if let Err(e) = run(&program, &mut Context::new()) {
+            if let Err(e) = run(&program, &mut VirtualMachine::new()) {
                 eprintln!("Error: {}\n", e);
             }
         }
@@ -51,8 +53,8 @@ fn run_file(path: &PathBuf) {
 }
 
 fn repl() {
-    println!("| Ein 0.1.0");
-    println!("| Copyright © 2018 Joe Clay");
+    println!("| Ein {}", env!("CARGO_PKG_VERSION"));
+    println!("| Copyright © 2018-2019 Joe Clay");
     println!("| Released under the MIT License\n");
 
     let mut editor = Editor::<()>::new();
@@ -63,7 +65,7 @@ fn repl() {
         }
     }
 
-    let mut ctx = Context::new();
+    let mut ctx = VirtualMachine::new();
 
     loop {
         let line = match editor.readline(">> ") {
@@ -102,7 +104,6 @@ type Result<'a, T = ()> = std::result::Result<T, EinError<'a>>;
 
 enum EinError<'a> {
     Parse(ParseError<'a>),
-    Eval(String),
     Io(io::Error),
     Readline(ReadlineError),
 }
@@ -110,12 +111,6 @@ enum EinError<'a> {
 impl<'a> From<ParseError<'a>> for EinError<'a> {
     fn from(err: ParseError<'a>) -> EinError<'a> {
         EinError::Parse(err)
-    }
-}
-
-impl<'a> From<String> for EinError<'a> {
-    fn from(err: String) -> EinError<'a> {
-        EinError::Eval(err)
     }
 }
 
@@ -135,7 +130,6 @@ impl<'a> Display for EinError<'a> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
             EinError::Parse(e) => write!(f, "{}", e),
-            EinError::Eval(e) => write!(f, "{}", e),
             EinError::Io(e) => write!(f, "{}", e),
             EinError::Readline(e) => write!(f, "{}", e),
         }

@@ -1,0 +1,8 @@
+[package]
+name = "ein_vm"
+version = "0.1.0"
+authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ein_syntax = { path = "../ein_syntax" }

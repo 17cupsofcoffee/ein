@@ -6,10 +6,10 @@ edition = "2018"
 
 [dependencies]
 ein_syntax = { path = "ein_syntax" }
-ein_treewalk = { path = "ein_treewalk" }
+ein_vm = { path = "ein_vm" }
 
 structopt = "0.2.15"
 rustyline = "3.0.0"
 
 [workspace]
-members = ["ein_syntax", "ein_treewalk"]
+members = ["ein_syntax", "ein_vm"]
