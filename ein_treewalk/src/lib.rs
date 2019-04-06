@@ -6,7 +6,7 @@ use ein_syntax::ast::{BinaryOp, Expr, Stmt, UnaryOp};
 
 use crate::env::{Env, EnvRef};
 use crate::native::NativeFn;
-use crate::value::Value;
+pub use crate::value::Value;
 
 pub struct Context {
     stack: Vec<EnvRef>,
