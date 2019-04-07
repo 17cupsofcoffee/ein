@@ -46,6 +46,16 @@ impl Emit for Expr {
             Expr::Nil => {
                 chunk.add_instruction(Instruction::LoadNil);
             }
+
+            Expr::Identifier(_) => unimplemented!(),
+
+            Expr::NumberLiteral(v) => {
+                let constant = chunk.add_constant(Value::Number(*v));
+                chunk.add_instruction(Instruction::LoadConstant(constant));
+            }
+
+            Expr::StringLiteral(_) => unimplemented!(),
+
             Expr::BooleanLiteral(v) => {
                 chunk.add_instruction(if *v {
                     Instruction::LoadTrue
@@ -53,31 +63,41 @@ impl Emit for Expr {
                     Instruction::LoadFalse
                 });
             }
-            Expr::NumberLiteral(v) => {
-                let constant = chunk.add_constant(Value::Number(*v));
-                chunk.add_instruction(Instruction::LoadConstant(constant));
-            }
+
+            Expr::Assign(_, _) => unimplemented!(),
+
+            Expr::Function(_, _) => unimplemented!(),
+
+            Expr::Call(_, _) => unimplemented!(),
+
             Expr::UnaryOp(op, val) => {
                 val.emit(chunk);
 
                 chunk.add_instruction(match op {
+                    UnaryOp::Not => unimplemented!(),
                     UnaryOp::UnaryMinus => Instruction::Negate,
-                    _ => unimplemented!(),
                 });
             }
+
             Expr::BinaryOp(op, lhs, rhs) => {
                 lhs.emit(chunk);
                 rhs.emit(chunk);
 
                 chunk.add_instruction(match op {
+                    BinaryOp::And => unimplemented!(),
+                    BinaryOp::Or => unimplemented!(),
+                    BinaryOp::Equals => unimplemented!(),
+                    BinaryOp::NotEquals => unimplemented!(),
+                    BinaryOp::GreaterThan => unimplemented!(),
+                    BinaryOp::GreaterEquals => unimplemented!(),
+                    BinaryOp::LessThan => unimplemented!(),
+                    BinaryOp::LessEquals => unimplemented!(),
                     BinaryOp::Add => Instruction::Add,
                     BinaryOp::Subtract => Instruction::Subtract,
                     BinaryOp::Multiply => Instruction::Multiply,
                     BinaryOp::Divide => Instruction::Divide,
-                    _ => unimplemented!(),
                 });
             }
-            _ => unimplemented!(),
         }
     }
 }
@@ -85,11 +105,18 @@ impl Emit for Expr {
 impl Emit for Stmt {
     fn emit(&self, chunk: &mut Chunk) {
         match self {
+            Stmt::Return(_) => unimplemented!(),
+
             Stmt::ExprStmt(e) => {
                 e.emit(chunk);
                 chunk.add_instruction(Instruction::Pop);
             }
-            _ => unimplemented!(),
+
+            Stmt::Declaration(_, _) => unimplemented!(),
+
+            Stmt::If(_, _, _) => unimplemented!(),
+
+            Stmt::While(_, _) => unimplemented!(),
         }
     }
 }
@@ -136,7 +163,7 @@ impl Chunk {
     }
 }
 
-macro_rules! binary_op_impl {
+macro_rules! arith_impl {
     ($self:ident, $name:literal, $op:tt) => {
         {
             let rhs = $self.stack.pop().unwrap();
@@ -169,32 +196,42 @@ impl VirtualMachine {
 
         loop {
             let instruction = &chunk.instructions[self.pc];
+
+            println!("{:04X} {:?}", self.pc, instruction);
+
             self.pc += 1;
 
             match instruction {
                 Instruction::Return => {
                     return self.stack.last().cloned();
                 }
+
                 Instruction::Pop => {
                     self.stack.pop().unwrap();
                 }
+
                 Instruction::LoadNil => {
                     self.stack.push(Value::Nil);
                 }
+
                 Instruction::LoadTrue => {
                     self.stack.push(Value::Boolean(true));
                 }
+
                 Instruction::LoadFalse => {
                     self.stack.push(Value::Boolean(false));
                 }
+
                 Instruction::LoadConstant(i) => {
                     let constant = &chunk.constants[*i];
                     self.stack.push(constant.clone());
                 }
-                Instruction::Add => binary_op_impl!(self, "add", +),
-                Instruction::Subtract => binary_op_impl!(self, "subtract", -),
-                Instruction::Multiply => binary_op_impl!(self, "multiply", *),
-                Instruction::Divide => binary_op_impl!(self, "divide", /),
+
+                Instruction::Add => arith_impl!(self, "add", +),
+                Instruction::Subtract => arith_impl!(self, "subtract", -),
+                Instruction::Multiply => arith_impl!(self, "multiply", *),
+                Instruction::Divide => arith_impl!(self, "divide", /),
+
                 Instruction::Negate => {
                     let val = self.stack.pop().unwrap();
 
