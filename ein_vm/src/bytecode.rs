@@ -12,7 +12,7 @@ pub enum Instruction {
     LoadNil,
     LoadTrue,
     LoadFalse,
-    LoadConstant(usize),
+    LoadConstant(u8),
 
     // Operators
     Add,
@@ -129,24 +129,29 @@ impl Chunk {
         }
     }
 
-    pub fn constants(&self) -> &[Value] {
-        &self.constants
-    }
-
-    pub fn instructions(&self) -> &[Instruction] {
-        &self.instructions
-    }
-
     pub fn add_instruction(&mut self, instruction: Instruction) -> usize {
         let i = self.instructions.len();
         self.instructions.push(instruction);
         i
     }
 
-    pub fn add_constant(&mut self, value: Value) -> usize {
+    pub fn get_instruction(&self, addr: usize) -> &Instruction {
+        &self.instructions[addr]
+    }
+
+    pub fn add_constant(&mut self, value: Value) -> u8 {
         let i = self.constants.len();
+
+        if i >= u8::max_value() as usize {
+            panic!("Chunks cannot contain more than 255 constants.");
+        }
+
         self.constants.push(value);
-        i
+        i as u8
+    }
+
+    pub fn get_constant(&self, idx: u8) -> &Value {
+        &self.constants[idx as usize]
     }
 
     pub fn emit<T>(&mut self, node: &T)

@@ -23,7 +23,7 @@ impl VirtualMachine {
         self.stack = vec![];
 
         loop {
-            let instruction = &chunk.instructions()[self.pc];
+            let instruction = chunk.get_instruction(self.pc);
 
             println!("{:04X} {:?}", self.pc, instruction);
 
@@ -51,7 +51,7 @@ impl VirtualMachine {
                 }
 
                 Instruction::LoadConstant(i) => {
-                    let constant = &chunk.constants()[*i];
+                    let constant = chunk.get_constant(*i);
                     self.stack.push(constant.clone());
                 }
 
