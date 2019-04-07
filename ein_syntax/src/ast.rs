@@ -44,4 +44,5 @@ pub enum Stmt {
     Declaration(String, Expr),
     If(Expr, Vec<Stmt>, Vec<Stmt>),
     While(Expr, Vec<Stmt>),
+    Block(Vec<Stmt>),
 }

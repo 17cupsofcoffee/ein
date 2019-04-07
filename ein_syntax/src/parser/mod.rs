@@ -368,6 +368,21 @@ mod test {
     }
 
     #[test]
+    fn block_stmt() {
+        stmt(
+            "{ 1 + 1; return 123; }",
+            vec![Stmt::Block(vec![
+                Stmt::ExprStmt(Expr::BinaryOp(
+                    BinaryOp::Add,
+                    Box::new(Expr::NumberLiteral(1.0)),
+                    Box::new(Expr::NumberLiteral(1.0)),
+                )),
+                Stmt::Return(Expr::NumberLiteral(123.0)),
+            ])],
+        )
+    }
+
+    #[test]
     fn program() {
         stmt(
             "\nlet x = 1;\nlet y = 2;\n\nlet z = 3;\n",

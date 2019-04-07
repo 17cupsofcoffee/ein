@@ -103,6 +103,8 @@ impl Emit for Stmt {
             Stmt::If(_, _, _) => unimplemented!(),
 
             Stmt::While(_, _) => unimplemented!(),
+
+            Stmt::Block(_) => unimplemented!(),
         }
     }
 }
