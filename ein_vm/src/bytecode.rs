@@ -13,6 +13,10 @@ pub enum Instruction {
     LoadTrue,
     LoadFalse,
     LoadConstant(u8),
+    LoadGlobal(u8),
+
+    DefineGlobal(u8),
+    StoreGlobal(u8),
 
     // Operators
     Add,
@@ -33,7 +37,10 @@ impl Emit for Expr {
                 chunk.add_instruction(Instruction::LoadNil);
             }
 
-            Expr::Identifier(_) => unimplemented!(),
+            Expr::Identifier(name) => {
+                let constant = chunk.add_constant(Value::String(name.clone()));
+                chunk.add_instruction(Instruction::LoadGlobal(constant));
+            }
 
             Expr::NumberLiteral(v) => {
                 let constant = chunk.add_constant(Value::Number(*v));
@@ -50,7 +57,12 @@ impl Emit for Expr {
                 });
             }
 
-            Expr::Assign(_, _) => unimplemented!(),
+            Expr::Assign(name, value) => {
+                value.emit(chunk);
+
+                let constant = chunk.add_constant(Value::String(name.clone()));
+                chunk.add_instruction(Instruction::StoreGlobal(constant));
+            }
 
             Expr::Function(_, _) => unimplemented!(),
 
@@ -98,7 +110,12 @@ impl Emit for Stmt {
                 chunk.add_instruction(Instruction::Pop);
             }
 
-            Stmt::Declaration(_, _) => unimplemented!(),
+            Stmt::Declaration(name, value) => {
+                value.emit(chunk);
+
+                let constant = chunk.add_constant(Value::String(name.clone()));
+                chunk.add_instruction(Instruction::DefineGlobal(constant));
+            }
 
             Stmt::If(_, _, _) => unimplemented!(),
 

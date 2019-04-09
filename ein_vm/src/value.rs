@@ -5,6 +5,7 @@ pub enum Value {
     Nil,
     Boolean(bool),
     Number(f64),
+    String(String), // TODO: Interning
 }
 
 impl Display for Value {
@@ -13,6 +14,7 @@ impl Display for Value {
             Value::Nil => write!(f, "nil"),
             Value::Boolean(v) => write!(f, "{}", v),
             Value::Number(v) => write!(f, "{}", v),
+            Value::String(v) => write!(f, "\"{}\"", v),
         }
     }
 }

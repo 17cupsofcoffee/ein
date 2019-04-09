@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 ein_syntax = { path = "../ein_syntax" }
+
+hashbrown = "0.2.0"
