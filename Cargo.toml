@@ -9,7 +9,7 @@ ein_syntax = { path = "ein_syntax" }
 ein_vm = { path = "ein_vm" }
 
 structopt = "0.2.15"
-rustyline = "3.0.0"
+rustyline = "4.1.0"
 
 [workspace]
 members = ["ein_syntax", "ein_vm"]

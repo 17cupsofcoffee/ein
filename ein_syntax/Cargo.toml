@@ -5,7 +5,7 @@ authors = ["Joe Clay <27cupsofcoffee@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-lalrpop-util = "0.16.3"
+lalrpop-util = "0.17.0"
 
 [build-dependencies]
-lalrpop = "0.16.3"
+lalrpop = "0.17.0"
