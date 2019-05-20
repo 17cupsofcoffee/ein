@@ -29,11 +29,13 @@ impl VirtualMachine {
         loop {
             let instruction = chunk.get_instruction(self.pc);
 
-            println!("{:04X} {:?}", self.pc, instruction);
+            println!("[{:04X}] {:?}", self.pc, instruction);
 
             self.pc += 1;
 
             match instruction {
+                Instruction::NoOp => {}
+
                 Instruction::Return => {
                     return self.stack.last().cloned();
                 }
@@ -92,6 +94,18 @@ impl VirtualMachine {
                         }
                     } else {
                         panic!("{} is not a valid global name", constant);
+                    }
+                }
+
+                Instruction::Jump(offset) => {
+                    self.pc += *offset as usize;
+                }
+
+                Instruction::JumpIfFalse(offset) => {
+                    let val = self.stack.last().unwrap();
+
+                    if let Value::Boolean(false) = val {
+                        self.pc += *offset as usize;
                     }
                 }
 

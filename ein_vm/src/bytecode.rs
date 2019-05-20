@@ -4,6 +4,9 @@ use crate::Value;
 
 #[derive(Debug)]
 pub enum Instruction {
+    // No-op
+    NoOp,
+
     // Stack control
     Return,
     Pop,
@@ -15,8 +18,13 @@ pub enum Instruction {
     LoadConstant(u8),
     LoadGlobal(u8),
 
+    // Stores
     DefineGlobal(u8),
     StoreGlobal(u8),
+
+    // Jumps
+    Jump(u8),
+    JumpIfFalse(u8),
 
     // Operators
     Add,
@@ -117,7 +125,34 @@ impl Emit for Stmt {
                 chunk.add_instruction(Instruction::DefineGlobal(constant));
             }
 
-            Stmt::If(_, _, _) => unimplemented!(),
+            Stmt::If(condition, t, f) => {
+                condition.emit(chunk);
+
+                let else_start_jump = chunk.add_instruction(Instruction::NoOp);
+                chunk.add_instruction(Instruction::Pop);
+
+                t.emit(chunk);
+
+                let then_end_jump = chunk.add_instruction(Instruction::NoOp);
+
+                let else_start = chunk.instruction_count() - 1;
+
+                chunk.add_instruction(Instruction::Pop);
+
+                f.emit(chunk);
+
+                let else_end = chunk.instruction_count() - 1;
+
+                chunk.set_instruction(
+                    else_start_jump,
+                    Instruction::JumpIfFalse((else_start - else_start_jump) as u8),
+                );
+
+                chunk.set_instruction(
+                    then_end_jump,
+                    Instruction::Jump((else_end - then_end_jump) as u8),
+                );
+            }
 
             Stmt::While(_, _) => unimplemented!(),
 
@@ -156,6 +191,14 @@ impl Chunk {
 
     pub fn get_instruction(&self, addr: usize) -> &Instruction {
         &self.instructions[addr]
+    }
+
+    pub fn set_instruction(&mut self, addr: usize, instruction: Instruction) {
+        self.instructions[addr] = instruction;
+    }
+
+    pub fn instruction_count(&self) -> usize {
+        self.instructions.len()
     }
 
     pub fn add_constant(&mut self, value: Value) -> u8 {
