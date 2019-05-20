@@ -7,6 +7,17 @@ use hashbrown::HashMap;
 pub use bytecode::{Chunk, Emit, Instruction};
 pub use value::Value;
 
+fn is_falsey(value: &Value) -> bool {
+    match value {
+        Value::Nil | Value::Boolean(false) => true,
+        _ => false,
+    }
+}
+
+fn is_truthy(value: &Value) -> bool {
+    !is_falsey(value)
+}
+
 pub struct VirtualMachine {
     pc: usize,
     stack: Vec<Value>,
@@ -101,10 +112,18 @@ impl VirtualMachine {
                     self.pc += *offset as usize;
                 }
 
+                Instruction::JumpIfTrue(offset) => {
+                    let val = self.stack.last().unwrap();
+
+                    if is_truthy(val) {
+                        self.pc += *offset as usize;
+                    }
+                }
+
                 Instruction::JumpIfFalse(offset) => {
                     let val = self.stack.last().unwrap();
 
-                    if let Value::Boolean(false) = val {
+                    if is_falsey(val) {
                         self.pc += *offset as usize;
                     }
                 }

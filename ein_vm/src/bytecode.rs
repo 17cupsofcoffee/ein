@@ -24,6 +24,7 @@ pub enum Instruction {
 
     // Jumps
     Jump(u8),
+    JumpIfTrue(u8),
     JumpIfFalse(u8),
 
     // Operators
@@ -85,25 +86,56 @@ impl Emit for Expr {
                 });
             }
 
-            Expr::BinaryOp(op, lhs, rhs) => {
-                lhs.emit(chunk);
-                rhs.emit(chunk);
+            Expr::BinaryOp(op, lhs, rhs) => match op {
+                BinaryOp::And => {
+                    lhs.emit(chunk);
+                    let jump = chunk.add_instruction(Instruction::NoOp);
+                    chunk.add_instruction(Instruction::Pop);
+                    rhs.emit(chunk);
+                    let jump_end = chunk.instruction_count() - 1;
+                    chunk.set_instruction(jump, Instruction::JumpIfFalse((jump_end - jump) as u8));
+                }
 
-                chunk.add_instruction(match op {
-                    BinaryOp::And => unimplemented!(),
-                    BinaryOp::Or => unimplemented!(),
-                    BinaryOp::Equals => unimplemented!(),
-                    BinaryOp::NotEquals => unimplemented!(),
-                    BinaryOp::GreaterThan => unimplemented!(),
-                    BinaryOp::GreaterEquals => unimplemented!(),
-                    BinaryOp::LessThan => unimplemented!(),
-                    BinaryOp::LessEquals => unimplemented!(),
-                    BinaryOp::Add => Instruction::Add,
-                    BinaryOp::Subtract => Instruction::Subtract,
-                    BinaryOp::Multiply => Instruction::Multiply,
-                    BinaryOp::Divide => Instruction::Divide,
-                });
-            }
+                BinaryOp::Or => {
+                    lhs.emit(chunk);
+                    let jump = chunk.add_instruction(Instruction::NoOp);
+                    chunk.add_instruction(Instruction::Pop);
+                    rhs.emit(chunk);
+                    let jump_end = chunk.instruction_count() - 1;
+                    chunk.set_instruction(jump, Instruction::JumpIfTrue((jump_end - jump) as u8));
+                }
+
+                BinaryOp::Equals => unimplemented!(),
+                BinaryOp::NotEquals => unimplemented!(),
+                BinaryOp::GreaterThan => unimplemented!(),
+                BinaryOp::GreaterEquals => unimplemented!(),
+                BinaryOp::LessThan => unimplemented!(),
+                BinaryOp::LessEquals => unimplemented!(),
+
+                BinaryOp::Add => {
+                    lhs.emit(chunk);
+                    rhs.emit(chunk);
+                    chunk.add_instruction(Instruction::Add);
+                }
+
+                BinaryOp::Subtract => {
+                    lhs.emit(chunk);
+                    rhs.emit(chunk);
+                    chunk.add_instruction(Instruction::Subtract);
+                }
+
+                BinaryOp::Multiply => {
+                    lhs.emit(chunk);
+                    rhs.emit(chunk);
+                    chunk.add_instruction(Instruction::Multiply);
+                }
+
+                BinaryOp::Divide => {
+                    lhs.emit(chunk);
+                    rhs.emit(chunk);
+                    chunk.add_instruction(Instruction::Divide);
+                }
+            },
         }
     }
 }
