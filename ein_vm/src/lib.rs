@@ -2,10 +2,26 @@ mod bytecode;
 mod macros;
 mod value;
 
+use std::fmt::{self, Display, Formatter};
+
 use hashbrown::HashMap;
 
 pub use bytecode::{Chunk, Emit, Instruction};
 pub use value::Value;
+
+pub enum RuntimeError {
+    UndefinedName { name: String },
+    InvalidOperation { reason: String },
+}
+
+impl Display for RuntimeError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            RuntimeError::UndefinedName { name } => write!(f, "{} is undefined", name),
+            RuntimeError::InvalidOperation { reason } => write!(f, "Invalid operation: {}", reason),
+        }
+    }
+}
 
 fn is_falsey(value: &Value) -> bool {
     match value {
@@ -33,7 +49,7 @@ impl VirtualMachine {
         }
     }
 
-    pub fn run(&mut self, chunk: &Chunk) -> Option<Value> {
+    pub fn run(&mut self, chunk: &Chunk) -> Result<Option<Value>, RuntimeError> {
         self.pc = 0;
         self.stack = vec![];
 
@@ -46,7 +62,7 @@ impl VirtualMachine {
 
             match instruction {
                 Instruction::Return => {
-                    return self.stack.last().cloned();
+                    return Ok(self.stack.last().cloned());
                 }
 
                 Instruction::Pop => {
@@ -76,7 +92,7 @@ impl VirtualMachine {
                     if let Value::String(name) = constant {
                         match self.globals.get(name) {
                             Some(value) => self.stack.push(value.clone()),
-                            None => panic!("{} is undefined", name),
+                            None => return Err(RuntimeError::UndefinedName { name: name.clone() }),
                         }
                     } else {
                         panic!("{} is not a valid global name", constant);
@@ -99,7 +115,7 @@ impl VirtualMachine {
                     if let Value::String(name) = constant {
                         match self.globals.get_mut(name) {
                             Some(old_value) => *old_value = self.stack.last().unwrap().clone(),
-                            None => panic!("{} is undefined", name),
+                            None => return Err(RuntimeError::UndefinedName { name: name.clone() }),
                         }
                     } else {
                         panic!("{} is not a valid global name", constant);
@@ -140,7 +156,11 @@ impl VirtualMachine {
 
                     match val {
                         Value::Number(i) => self.stack.push(Value::Number(-i)),
-                        other => panic!("Cannot negate {}", other),
+                        other => {
+                            return Err(RuntimeError::InvalidOperation {
+                                reason: format!("{} is not a number", other),
+                            })
+                        }
                     }
                 }
             }

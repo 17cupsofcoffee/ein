@@ -8,7 +8,7 @@ use rustyline::Editor;
 use structopt::StructOpt;
 
 use ein_syntax::parser::{self, ParseError};
-use ein_vm::{Chunk, Instruction, Value, VirtualMachine};
+use ein_vm::{Chunk, Instruction, RuntimeError, Value, VirtualMachine};
 
 #[derive(StructOpt, Debug)]
 struct Options {
@@ -38,7 +38,9 @@ fn run<'a>(input: &'a str, vm: &mut VirtualMachine) -> Result<'a, Option<Value>>
 
     chunk.add_instruction(Instruction::Return);
 
-    Ok(vm.run(&chunk))
+    let return_value = vm.run(&chunk)?;
+
+    Ok(return_value)
 }
 
 fn run_file(path: &PathBuf) {
@@ -104,6 +106,7 @@ type Result<'a, T = ()> = std::result::Result<T, EinError<'a>>;
 
 enum EinError<'a> {
     Parse(ParseError<'a>),
+    Runtime(RuntimeError),
     Io(io::Error),
     Readline(ReadlineError),
 }
@@ -111,6 +114,12 @@ enum EinError<'a> {
 impl<'a> From<ParseError<'a>> for EinError<'a> {
     fn from(err: ParseError<'a>) -> EinError<'a> {
         EinError::Parse(err)
+    }
+}
+
+impl<'a> From<RuntimeError> for EinError<'a> {
+    fn from(err: RuntimeError) -> EinError<'a> {
+        EinError::Runtime(err)
     }
 }
 
@@ -129,9 +138,10 @@ impl<'a> From<ReadlineError> for EinError<'a> {
 impl<'a> Display for EinError<'a> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            EinError::Parse(e) => write!(f, "{}", e),
-            EinError::Io(e) => write!(f, "{}", e),
-            EinError::Readline(e) => write!(f, "{}", e),
+            EinError::Parse(e) => e.fmt(f),
+            EinError::Runtime(e) => e.fmt(f),
+            EinError::Io(e) => e.fmt(f),
+            EinError::Readline(e) => e.fmt(f),
         }
     }
 }
