@@ -45,8 +45,6 @@ impl VirtualMachine {
             self.pc += 1;
 
             match instruction {
-                Instruction::NoOp => {}
-
                 Instruction::Return => {
                     return self.stack.last().cloned();
                 }
@@ -100,7 +98,7 @@ impl VirtualMachine {
 
                     if let Value::String(name) = constant {
                         match self.globals.get_mut(name) {
-                            Some(old_value) => *old_value = self.stack.pop().unwrap(),
+                            Some(old_value) => *old_value = self.stack.last().unwrap().clone(),
                             None => panic!("{} is undefined", name),
                         }
                     } else {
@@ -126,6 +124,10 @@ impl VirtualMachine {
                     if is_falsey(val) {
                         self.pc += *offset as usize;
                     }
+                }
+
+                Instruction::Loop(offset) => {
+                    self.pc -= *offset as usize;
                 }
 
                 Instruction::Add => arith_impl!(self, "add", +),

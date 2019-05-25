@@ -4,9 +4,6 @@ use crate::Value;
 
 #[derive(Debug)]
 pub enum Instruction {
-    // No-op
-    NoOp,
-
     // Stack control
     Return,
     Pop,
@@ -26,6 +23,7 @@ pub enum Instruction {
     Jump(u8),
     JumpIfTrue(u8),
     JumpIfFalse(u8),
+    Loop(u8),
 
     // Operators
     Add,
@@ -92,20 +90,24 @@ impl Emit for Expr {
             Expr::BinaryOp(op, lhs, rhs) => match op {
                 BinaryOp::And => {
                     lhs.emit(chunk);
-                    let jump = chunk.add_instruction(Instruction::NoOp);
+
+                    let jump = chunk.add_instruction(Instruction::JumpIfFalse(0));
+
                     chunk.add_instruction(Instruction::Pop);
                     rhs.emit(chunk);
-                    let jump_end = chunk.instruction_count() - 1;
-                    chunk.set_instruction(jump, Instruction::JumpIfFalse((jump_end - jump) as u8));
+
+                    chunk.patch_jump(jump);
                 }
 
                 BinaryOp::Or => {
                     lhs.emit(chunk);
-                    let jump = chunk.add_instruction(Instruction::NoOp);
+
+                    let jump = chunk.add_instruction(Instruction::JumpIfTrue(0));
+
                     chunk.add_instruction(Instruction::Pop);
                     rhs.emit(chunk);
-                    let jump_end = chunk.instruction_count() - 1;
-                    chunk.set_instruction(jump, Instruction::JumpIfTrue((jump_end - jump) as u8));
+
+                    chunk.patch_jump(jump)
                 }
 
                 BinaryOp::Equals => unimplemented!(),
@@ -160,36 +162,40 @@ impl Emit for Stmt {
                 chunk.add_instruction(Instruction::DefineGlobal(constant));
             }
 
-            Stmt::If(condition, t, f) => {
+            Stmt::If(condition, when_true, when_false) => {
                 condition.emit(chunk);
 
-                let else_start_jump = chunk.add_instruction(Instruction::NoOp);
-                chunk.add_instruction(Instruction::Pop);
-
-                t.emit(chunk);
-
-                let then_end_jump = chunk.add_instruction(Instruction::NoOp);
-
-                let else_start = chunk.instruction_count() - 1;
+                let else_jump = chunk.add_instruction(Instruction::JumpIfFalse(0));
 
                 chunk.add_instruction(Instruction::Pop);
 
-                f.emit(chunk);
+                when_true.emit(chunk);
 
-                let else_end = chunk.instruction_count() - 1;
+                let then_jump = chunk.add_instruction(Instruction::Jump(0));
 
-                chunk.set_instruction(
-                    else_start_jump,
-                    Instruction::JumpIfFalse((else_start - else_start_jump) as u8),
-                );
+                chunk.patch_jump(else_jump);
+                chunk.add_instruction(Instruction::Pop);
 
-                chunk.set_instruction(
-                    then_end_jump,
-                    Instruction::Jump((else_end - then_end_jump) as u8),
-                );
+                when_false.emit(chunk);
+
+                chunk.patch_jump(then_jump);
             }
 
-            Stmt::While(_, _) => unimplemented!(),
+            Stmt::While(condition, body) => {
+                let loop_start = chunk.next_instruction();
+
+                condition.emit(chunk);
+
+                let exit_jump = chunk.add_instruction(Instruction::JumpIfFalse(0));
+
+                chunk.add_instruction(Instruction::Pop);
+
+                body.emit(chunk);
+
+                chunk.emit_loop(loop_start);
+                chunk.patch_jump(exit_jump);
+                chunk.add_instruction(Instruction::Pop);
+            }
 
             Stmt::Block(_) => unimplemented!(),
         }
@@ -228,12 +234,39 @@ impl Chunk {
         &self.instructions[addr]
     }
 
+    pub fn get_instruction_mut(&mut self, addr: usize) -> &mut Instruction {
+        &mut self.instructions[addr]
+    }
+
     pub fn set_instruction(&mut self, addr: usize, instruction: Instruction) {
         self.instructions[addr] = instruction;
     }
 
-    pub fn instruction_count(&self) -> usize {
+    pub fn prev_instruction(&self) -> usize {
+        self.instructions.len() - 1
+    }
+
+    pub fn next_instruction(&self) -> usize {
         self.instructions.len()
+    }
+
+    pub fn patch_jump(&mut self, addr: usize) {
+        let next = self.next_instruction();
+
+        match self.get_instruction_mut(addr) {
+            Instruction::Jump(old)
+            | Instruction::JumpIfTrue(old)
+            | Instruction::JumpIfFalse(old) => {
+                *old = (next - addr) as u8 - 1;
+            }
+            other => panic!("{:?} is not a jump instruction", other),
+        }
+    }
+
+    pub fn emit_loop(&mut self, target: usize) {
+        let next = self.next_instruction();
+
+        self.add_instruction(Instruction::Loop((next - target) as u8 + 1));
     }
 
     pub fn add_constant(&mut self, value: Value) -> u8 {
