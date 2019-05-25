@@ -78,7 +78,7 @@ fn repl() {
             }
         };
 
-        editor.add_history_entry(line.as_ref());
+        editor.add_history_entry(line.as_str());
 
         match run(&line, &mut ctx) {
             Ok(Some(value)) => println!("{}\n", value),
