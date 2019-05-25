@@ -56,7 +56,10 @@ impl Emit for Expr {
                 chunk.add_instruction(Instruction::LoadConstant(constant));
             }
 
-            Expr::StringLiteral(_) => unimplemented!(),
+            Expr::StringLiteral(v) => {
+                let constant = chunk.add_constant(Value::String(v.clone()));
+                chunk.add_instruction(Instruction::LoadConstant(constant));
+            }
 
             Expr::BooleanLiteral(v) => {
                 chunk.add_instruction(if *v {
