@@ -56,7 +56,7 @@ fn run_file(path: &PathBuf) {
 
 fn repl() {
     println!("| Ein {}", env!("CARGO_PKG_VERSION"));
-    println!("| Copyright © 2018-2019 Joe Clay");
+    println!("| Copyright © 2018-2020 Joe Clay");
     println!("| Released under the MIT License\n");
 
     let mut editor = Editor::<()>::new();

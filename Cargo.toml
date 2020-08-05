@@ -8,8 +8,8 @@ edition = "2018"
 ein_syntax = { path = "ein_syntax" }
 ein_vm = { path = "ein_vm" }
 
-structopt = "0.2.15"
-rustyline = "4.1.0"
+structopt = "0.3.15"
+rustyline = "6.2.0"
 
 [workspace]
 members = ["ein_syntax", "ein_vm"]
