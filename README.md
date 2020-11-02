@@ -1,6 +1,6 @@
 # 🐕 Ein
 
-[![Build Status](https://travis-ci.org/17cupsofcoffee/ein.svg?branch=main)](https://travis-ci.org/17cupsofcoffee/ein)
+[![Build Status](https://img.shields.io/github/workflow/status/17cupsofcoffee/ein/CI%20Build/main)](https://github.com/17cupsofcoffee/ein/actions?query=branch%3Amain)
 
 Ein is a simple, dynamically-typed programming language, inspired by Rust (in which the interpreter is written), Lua and Wren.
 
