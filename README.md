@@ -1,3 +1,5 @@
+_**Disclaimer:** This language is a toy project, and is not currently under active development - you may be looking for the [ein-lang/ein](https://github.com/ein-lang/ein) repo instead, which is a seperate project by a different developer! If this project starts up again, I will change the name to avoid confusion :)_
+
 # 🐕 Ein
 
 [![Build Status](https://img.shields.io/github/workflow/status/17cupsofcoffee/ein/CI%20Build/main)](https://github.com/17cupsofcoffee/ein/actions?query=branch%3Amain)
